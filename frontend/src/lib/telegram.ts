@@ -5,33 +5,27 @@ export type TgUser = {
   username?: string;
 };
 
-declare global {
-  interface Window {
-    Telegram?: any;
-  }
-}
-
-export function isTelegramWebApp(): boolean {
-  return !!window.Telegram?.WebApp;
-}
-
 export function getTelegramUser(): TgUser | null {
-  try {
-    const tg = window.Telegram?.WebApp;
-    const u = tg?.initDataUnsafe?.user;
-    return u?.id ? (u as TgUser) : null;
-  } catch {
-    return null;
-  }
+  const w = window as any;
+  const tg = w?.Telegram?.WebApp;
+  const user = tg?.initDataUnsafe?.user;
+  if (!user?.id) return null;
+  return user as TgUser;
 }
 
 export function getTelegramId(fallback = 1111): number {
-  return getTelegramUser()?.id ?? fallback;
+  const u = getTelegramUser();
+  return u?.id ?? fallback;
 }
 
-export function setupTelegramWebAppUI() {
-  const tg = window.Telegram?.WebApp;
+export function initTelegramWebApp() {
+  const w = window as any;
+  const tg = w?.Telegram?.WebApp;
   if (!tg) return;
-  tg.ready();
-  // tg.expand(); // можно включить позже
+  try {
+    tg.ready();
+    tg.expand();
+  } catch {
+    // ignore
+  }
 }

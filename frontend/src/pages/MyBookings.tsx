@@ -19,7 +19,7 @@ export default function MyBookings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const telegramId = getTelegramId();
+  const telegramId = getTelegramId(1111);
 
   async function load() {
     try {

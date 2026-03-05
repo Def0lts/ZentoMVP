@@ -13,7 +13,7 @@ export default function Confirm() {
   const day = qp.get("day") || "";
   const time = qp.get("time") || "";
 
-  const masterName = qp.get("masterName") || "Мастер";
+  const masterName = decodeURIComponent(qp.get("masterName") || "Мастер");
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
