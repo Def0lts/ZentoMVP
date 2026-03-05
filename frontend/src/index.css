@@ -1,0 +1,41 @@
+:root {
+  --bg: #bcd3ff;           /* общий голубой фон */
+  --bg2: #a9c4ff;
+  --card: #ffffff;
+  --text: #101828;
+  --muted: #667085;
+  --border: rgba(16, 24, 40, 0.08);
+
+  --primary: #74a8ff;
+  --primary2: #5f97ff;
+
+  --shadow: 0 10px 30px rgba(16, 24, 40, 0.10);
+  --shadow-sm: 0 6px 18px rgba(16, 24, 40, 0.10);
+
+  --r-xl: 22px;
+  --r-lg: 18px;
+  --r-md: 14px;
+
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text);
+  background: radial-gradient(1200px 700px at 20% 0%, #d8e6ff 0%, var(--bg) 50%, var(--bg2) 100%);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: transparent;
+  /* ВАЖНО: убираем центрирование Vite, иначе мобильный экран ломается */
+  display: block;
+}
+
+a { color: inherit; text-decoration: none; }
+button, input { font-family: inherit; }

@@ -1,0 +1,121 @@
+import { useLocation, useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { createBooking } from "../lib/api";
+import { getTelegramId } from "../lib/telegram";
+
+export default function Confirm() {
+  const nav = useNavigate();
+  const loc = useLocation();
+  const qp = useMemo(() => new URLSearchParams(loc.search), [loc.search]);
+
+  const salonId = Number(qp.get("salonId") || 0);
+  const masterId = Number(qp.get("masterId") || 0);
+  const day = qp.get("day") || "";
+  const time = qp.get("time") || "";
+
+  const masterName = qp.get("masterName") || "Мастер";
+
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const telegramId = getTelegramId();
+
+  async function onSubmit() {
+    if (!salonId || !masterId || !day || !time) {
+      setError("Не хватает данных для записи");
+      return;
+    }
+    if (!name.trim() || !phone.trim()) {
+      setError("Заполни имя и телефон");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+
+      const booking = await createBooking({
+        telegram_id: telegramId,
+        salon_id: salonId,
+        master_id: masterId,
+        master_name: masterName,
+        day,
+        time,
+        customer_name: name.trim(),
+        customer_phone: phone.trim(),
+      });
+
+      nav("/success", { state: { bookingId: booking.id } });
+    } catch {
+      setError("Ошибка создания записи");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="zento-screen">
+      <div className="zento-phone">
+        <div className="topbar">
+          <button
+            className="pill"
+            onClick={() => nav(-1)}
+            style={{ cursor: "pointer" }}
+          >
+            ←
+          </button>
+          <div style={{ fontWeight: 900 }}>Подтверждение</div>
+          <div style={{ width: 44 }} />
+        </div>
+
+        <div className="page-title">Подтвердите запись</div>
+
+        <div className="slot-box">
+          <div style={{ fontWeight: 900, fontSize: 13 }}>Детали записи</div>
+          <div className="notice" style={{ marginTop: 6 }}>
+            Мастер: <b>{masterName}</b>
+          </div>
+          <div className="notice">
+            Дата: <b>{day || "—"}</b>
+          </div>
+          <div className="notice">
+            Время: <b>{time || "—"}</b>
+          </div>
+
+          <div className="form">
+            <input
+              className="input"
+              placeholder="Имя"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <input
+              className="input"
+              placeholder="Телефон"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+
+          <div className="notice">
+            Запись бесплатная. Оплата производится в салоне.
+          </div>
+
+          {error && (
+            <div style={{ marginTop: 10, color: "crimson", fontWeight: 700 }}>
+              {error}
+            </div>
+          )}
+        </div>
+
+        <button className="big-primary" onClick={onSubmit} disabled={saving}>
+          {saving ? "Создаю..." : "Записаться"}
+        </button>
+
+        {/* BottomNav здесь НЕ нужен */}
+      </div>
+    </div>
+  );
+}
