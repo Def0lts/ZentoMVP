@@ -62,60 +62,64 @@ export default function ChooseMaster() {
         )}
 
         <div style={{ display: "grid", gap: 12, paddingBottom: 10 }}>
-          {items.map((m) => (
-            <div key={m.id} className="salon-card" style={{ padding: 12 }}>
-              <div className="salon-img" style={{ width: 64, height: 64 }}>
-                {(m.name ?? "M").slice(0, 1).toUpperCase()}
-              </div>
+          {items.map((m) => {
+            const qs = new URLSearchParams({
+              masterId: String(m.id),
+              masterName: m.name, // URLSearchParams сам кодирует
+            }).toString();
 
-              <div style={{ flex: 1 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 10,
-                  }}
-                >
-                  <div className="salon-name" style={{ fontSize: 13 }}>
-                    {m.name}
-                  </div>
+            return (
+              <div key={m.id} className="salon-card" style={{ padding: 12 }}>
+                <div className="salon-img" style={{ width: 64, height: 64 }}>
+                  {(m.name ?? "M").slice(0, 1).toUpperCase()}
+                </div>
+
+                <div style={{ flex: 1 }}>
                   <div
-                    className="chip chip-active"
                     style={{
-                      padding: "6px 10px",
-                      fontSize: 11,
-                      boxShadow: "none",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 10,
                     }}
                   >
-                    ⭐ {m.rating}
+                    <div className="salon-name" style={{ fontSize: 13 }}>
+                      {m.name}
+                    </div>
+                    <div
+                      className="chip chip-active"
+                      style={{
+                        padding: "6px 10px",
+                        fontSize: 11,
+                        boxShadow: "none",
+                      }}
+                    >
+                      ⭐ {m.rating}
+                    </div>
+                  </div>
+
+                  <div className="notice" style={{ marginTop: 6 }}>
+                    {m.role} • {m.reviews} отзывов
+                  </div>
+
+                  <div className="salon-actions">
+                    <button
+                      className="btn-primary"
+                      onClick={() => nav(`/booking/${sid}?${qs}`)}
+                    >
+                      Выбрать
+                    </button>
+
+                    <button
+                      className="btn-ghost"
+                      onClick={() => nav(`/booking/${sid}?${qs}`)}
+                    >
+                      Время
+                    </button>
                   </div>
                 </div>
-
-                <div className="notice" style={{ marginTop: 6 }}>
-                  {m.role} • {m.reviews} отзывов
-                </div>
-
-                <div className="salon-actions">
-                  <button
-                    className="btn-primary"
-                    onClick={() =>
-                      nav(
-                        `/booking/${sid}?masterId=${m.id}&masterName=${encodeURIComponent(m.name)}`,
-                      )
-                    }
-                  >
-                    Выбрать
-                  </button>
-                  <button
-                    className="btn-ghost"
-                    onClick={() => nav(`/booking/${sid}?masterId=${m.id}`)}
-                  >
-                    Время
-                  </button>
-                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* В макете нижняя панель есть на большинстве экранов */}

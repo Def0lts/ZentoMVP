@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useMemo, useState } from "react";
-import { createBooking } from "../lib/api";
+import { useEffect, useMemo, useState } from "react";
+import { createBooking, getMastersBySalon } from "../lib/api";
 import { getTelegramId } from "../lib/telegram";
 
 export default function Confirm() {
@@ -13,7 +13,26 @@ export default function Confirm() {
   const day = qp.get("day") || "";
   const time = qp.get("time") || "";
 
-  const masterName = decodeURIComponent(qp.get("masterName") || "Мастер");
+  // было: const masterName = qp.get("masterName") || "Мастер";
+  const masterNameFromQuery = qp.get("masterName") ?? "";
+  const [masterName, setMasterName] = useState(masterNameFromQuery);
+
+  useEffect(() => {
+    if (!salonId || !masterId) return;
+
+    // Если имя нормальное — не трогаем
+    if (masterName && masterName !== "Мастер") return;
+
+    (async () => {
+      try {
+        const masters = await getMastersBySalon(salonId);
+        const found = masters.find((m) => m.id === masterId);
+        if (found?.name) setMasterName(found.name);
+      } catch {
+        // ничего, просто останется fallback в интерфейсе
+      }
+    })();
+  }, [salonId, masterId, masterName]);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -40,7 +59,7 @@ export default function Confirm() {
         telegram_id: telegramId,
         salon_id: salonId,
         master_id: masterId,
-        master_name: masterName,
+        master_name: masterName || "Мастер", // ✅ fallback
         day,
         time,
         customer_name: name.trim(),
@@ -55,6 +74,8 @@ export default function Confirm() {
     }
   }
 
+  // дальше твой JSX без изменений, только вывод:
+  // Мастер: <b>{masterName || "Мастер"}</b>
   return (
     <div className="zento-screen">
       <div className="zento-phone">
@@ -75,7 +96,9 @@ export default function Confirm() {
         <div className="slot-box">
           <div style={{ fontWeight: 900, fontSize: 13 }}>Детали записи</div>
           <div className="notice" style={{ marginTop: 6 }}>
-            Мастер: <b>{masterName}</b>
+            <div className="notice" style={{ marginTop: 6 }}>
+              Мастер: <b>{masterName || "Загрузка..."}</b>
+            </div>
           </div>
           <div className="notice">
             Дата: <b>{day || "—"}</b>

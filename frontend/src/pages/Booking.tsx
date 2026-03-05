@@ -54,6 +54,8 @@ export default function Booking() {
 
   const masterId = masterIdFromLink;
 
+  const masterNameFromLink = qp.get("masterName") || "";
+
   const today = useMemo(() => new Date(), []);
   const tomorrow = useMemo(() => {
     const d = new Date();
@@ -97,8 +99,13 @@ export default function Booking() {
 
   function goNext() {
     if (!selectedTime) return;
+
     nav(
-      `/confirm?salonId=${salonId}&masterId=${masterId}&day=${day}&time=${selectedTime}`,
+      `/confirm?salonId=${salonId}` +
+        `&masterId=${masterId}` +
+        `&masterName=${encodeURIComponent(masterNameFromLink)}` +
+        `&day=${day}` +
+        `&time=${selectedTime}`,
     );
   }
 
@@ -117,7 +124,12 @@ export default function Booking() {
           <button
             className="pill"
             onClick={() => {
-              const url = `${window.location.origin}/booking/${salonId}?masterId=${masterId}`;
+              const mn = masterNameFromLink;
+              const url =
+                `${window.location.origin}/booking/${salonId}` +
+                `?masterId=${masterId}` +
+                (mn ? `&masterName=${encodeURIComponent(mn)}` : "");
+
               navigator.clipboard.writeText(url);
               alert("Ссылка на запись скопирована");
             }}
