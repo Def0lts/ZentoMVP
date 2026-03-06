@@ -48,8 +48,8 @@ export default function Home() {
     try {
       const data = await getFavorites(telegramId);
       setFavoriteIds(data.map((x) => x.salon_id));
-    } catch {
-      // молча, избранное не должно ломать экран
+    } catch (e) {
+      console.log("load favorites error", e);
     }
   }
 
@@ -72,8 +72,8 @@ export default function Home() {
         });
         setFavoriteIds((prev) => [...prev, salonId]);
       }
-    } catch {
-      // можно потом красивый toast сделать
+    } catch (e) {
+      console.log("favorite error", e);
     }
   }
 
