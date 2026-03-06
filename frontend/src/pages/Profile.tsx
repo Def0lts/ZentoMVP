@@ -12,9 +12,7 @@ export default function Profile() {
   const fullName = `${firstName}${lastName ? " " + lastName : ""}`.trim();
 
   const name = fullName || "Пользователь";
-  const phoneOrUsername = tgUser?.username
-    ? `@${tgUser.username}`
-    : "Telegram user";
+  const username = tgUser?.username ? `@${tgUser.username}` : "Telegram user";
 
   return (
     <div className="zento-screen">
@@ -28,7 +26,7 @@ export default function Profile() {
         <div className="profile-card">
           <div className="avatar">{name.slice(0, 1).toUpperCase()}</div>
           <div className="profile-name">{name}</div>
-          <div className="profile-phone">{phoneOrUsername}</div>
+          <div className="profile-phone">{username}</div>
 
           <div className="menu">
             <div
