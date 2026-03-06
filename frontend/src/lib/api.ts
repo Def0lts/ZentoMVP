@@ -35,6 +35,7 @@ export type Booking = {
 
 export type BookingCreate = {
   telegram_id: number;
+  init_data?: string;
   salon_id: number;
   master_id: number;
   master_name: string;

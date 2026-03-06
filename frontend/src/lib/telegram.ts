@@ -18,6 +18,17 @@ export function getTelegramId(fallback = 1111): number {
   return u?.id ?? fallback;
 }
 
+export function getTelegramInitData(): string {
+  const w = window as any;
+  const tg = w?.Telegram?.WebApp;
+  return tg?.initData ?? "";
+}
+
+export function isTelegramWebApp(): boolean {
+  const w = window as any;
+  return !!w?.Telegram?.WebApp;
+}
+
 export function initTelegramWebApp() {
   const w = window as any;
   const tg = w?.Telegram?.WebApp;

@@ -1,11 +1,19 @@
 from datetime import datetime, timedelta
 from typing import List, Literal, Optional
+import os
+import json
+import hmac
+import hashlib
+from urllib.parse import parse_qsl
+
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from db import get_conn
+
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 app = FastAPI(title="Zento API")
 
@@ -47,6 +55,7 @@ def generate_times(start="10:00", end="20:00", step_min=30):
 # --- Models ---
 class BookingCreate(BaseModel):
     telegram_id: int
+    init_data: Optional[str] = None
     salon_id: int
     master_id: int
     master_name: str
@@ -72,6 +81,32 @@ class BlockSlot(BaseModel):
     master_id: int
     day: str
     time: str
+
+def validate_telegram_init_data(init_data: str) -> dict | None:
+    if not init_data or not BOT_TOKEN:
+        return None
+
+    parsed = dict(parse_qsl(init_data, keep_blank_values=True))
+    received_hash = parsed.pop("hash", None)
+    if not received_hash:
+        return None
+
+    data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
+    secret_key = hmac.new(b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256).digest()
+    calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+
+    if calculated_hash != received_hash:
+        return None
+
+    user_raw = parsed.get("user")
+    if not user_raw:
+        return None
+
+    try:
+        user = json.loads(user_raw)
+        return user
+    except Exception:
+        return None
 
 # --- Health ---
 @app.get("/")
@@ -182,6 +217,16 @@ def unblock_slot(master_id: int, day: str, time: str):
 # --- Bookings ---
 @app.post("/bookings", response_model=Booking)
 def create_booking(payload: BookingCreate):
+    # Если пришли из Telegram Mini App — проверяем подпись
+    if payload.init_data:
+        user = validate_telegram_init_data(payload.init_data)
+        if not user:
+            raise HTTPException(status_code=403, detail="invalid_telegram_init_data")
+
+        user_id = user.get("id")
+        if user_id != payload.telegram_id:
+            raise HTTPException(status_code=403, detail="telegram_id_mismatch")
+
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute(
             """
@@ -206,6 +251,7 @@ def create_booking(payload: BookingCreate):
         )
         row = cur.fetchone()
         conn.commit()
+
     return row
 
 @app.get("/bookings/by-master/{master_id}", response_model=List[Booking])

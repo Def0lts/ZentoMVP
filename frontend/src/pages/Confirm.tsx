@@ -1,7 +1,11 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { createBooking, getMastersBySalon } from "../lib/api";
-import { getTelegramId } from "../lib/telegram";
+import {
+  getTelegramId,
+  getTelegramInitData,
+  isTelegramWebApp,
+} from "../lib/telegram";
 
 export default function Confirm() {
   const nav = useNavigate();
@@ -40,6 +44,8 @@ export default function Confirm() {
   const [error, setError] = useState<string | null>(null);
 
   const telegramId = getTelegramId();
+  const initData = getTelegramInitData();
+  const isTg = isTelegramWebApp();
 
   async function onSubmit() {
     if (!salonId || !masterId || !day || !time) {
@@ -51,15 +57,21 @@ export default function Confirm() {
       return;
     }
 
+    if (isTg && !initData) {
+      setError("Не удалось получить данные Telegram");
+      return;
+    }
+
     try {
       setSaving(true);
       setError(null);
 
       const booking = await createBooking({
         telegram_id: telegramId,
+        init_data: initData,
         salon_id: salonId,
         master_id: masterId,
-        master_name: masterName || "Мастер", // ✅ fallback
+        master_name: masterName || "Мастер",
         day,
         time,
         customer_name: name.trim(),
