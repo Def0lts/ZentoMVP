@@ -1,8 +1,11 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta
-from pydantic import BaseModel
 from typing import List, Literal, Optional
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from db import get_conn
 
 app = FastAPI(title="Zento API")
 
@@ -17,8 +20,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
 
 # --- Mock data ---
 SALONS = [
@@ -72,10 +73,6 @@ class BlockSlot(BaseModel):
     day: str
     time: str
 
-BOOKINGS: List[Booking] = []
-BLOCKED_SLOTS: List[BlockSlot] = []
-BOOKING_ID = 1
-
 # --- Health ---
 @app.get("/")
 def root():
@@ -102,14 +99,26 @@ def get_salon_masters(salon_id: int):
 def free_slots(master_id: int, day: str):
     all_times = generate_times("10:00", "20:00", 30)
 
-    booked_times = {
-        b.time for b in BOOKINGS
-        if b.master_id == master_id and b.day == day and b.status != "rejected"
-    }
-    blocked_times = {
-        s.time for s in BLOCKED_SLOTS
-        if s.master_id == master_id and s.day == day
-    }
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            select time
+            from bookings
+            where master_id = %s and day = %s and status != 'rejected'
+            """,
+            (master_id, day),
+        )
+        booked_times = {row["time"] for row in cur.fetchall()}
+
+        cur.execute(
+            """
+            select time
+            from blocked_slots
+            where master_id = %s and day = %s
+            """,
+            (master_id, day),
+        )
+        blocked_times = {row["time"] for row in cur.fetchall()}
 
     busy = booked_times | blocked_times
     free = [t for t in all_times if t not in busy]
@@ -117,63 +126,140 @@ def free_slots(master_id: int, day: str):
 
 @app.post("/slots/block", response_model=BlockSlot)
 def block_slot(master_id: int, day: str, time: str):
-    new = BlockSlot(id=len(BLOCKED_SLOTS) + 1, master_id=master_id, day=day, time=time)
-    BLOCKED_SLOTS.append(new)
-    return new
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            insert into blocked_slots (master_id, day, time)
+            values (%s, %s, %s)
+            returning id, master_id, day, time
+            """,
+            (master_id, day, time),
+        )
+        row = cur.fetchone()
+        conn.commit()
+    return row
 
 @app.get("/slots/blocked", response_model=List[BlockSlot])
 def get_blocked(master_id: int, day: Optional[str] = None):
-    items = [s for s in BLOCKED_SLOTS if s.master_id == master_id]
-    if day:
-        items = [s for s in items if s.day == day]
+    with get_conn() as conn, conn.cursor() as cur:
+        if day:
+            cur.execute(
+                """
+                select id, master_id, day, time
+                from blocked_slots
+                where master_id = %s and day = %s
+                order by time
+                """,
+                (master_id, day),
+            )
+        else:
+            cur.execute(
+                """
+                select id, master_id, day, time
+                from blocked_slots
+                where master_id = %s
+                order by day, time
+                """,
+                (master_id,),
+            )
+        items = cur.fetchall()
     return items
 
 @app.post("/slots/unblock")
 def unblock_slot(master_id: int, day: str, time: str):
-    global BLOCKED_SLOTS
-    before = len(BLOCKED_SLOTS)
-    BLOCKED_SLOTS = [
-        s for s in BLOCKED_SLOTS
-        if not (s.master_id == master_id and s.day == day and s.time == time)
-    ]
-    return {"ok": True, "removed": before - len(BLOCKED_SLOTS)}
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            delete from blocked_slots
+            where master_id = %s and day = %s and time = %s
+            """,
+            (master_id, day, time),
+        )
+        removed = cur.rowcount
+        conn.commit()
+    return {"ok": True, "removed": removed}
 
 # --- Bookings ---
 @app.post("/bookings", response_model=Booking)
 def create_booking(payload: BookingCreate):
-    global BOOKING_ID
-    b = Booking(
-        id=BOOKING_ID,
-        telegram_id=payload.telegram_id,
-        salon_id=payload.salon_id,
-        master_id=payload.master_id,
-        master_name=payload.master_name,
-        day=payload.day,
-        time=payload.time,
-        customer_name=payload.customer_name,
-        customer_phone=payload.customer_phone,
-        status="pending",
-    )
-    BOOKINGS.append(b)
-    BOOKING_ID += 1
-    return b
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            insert into bookings (
+              telegram_id, salon_id, master_id, master_name,
+              day, time, customer_name, customer_phone, status
+            )
+            values (%s, %s, %s, %s, %s, %s, %s, %s, 'pending')
+            returning id, telegram_id, salon_id, master_id, master_name,
+                      day, time, customer_name, customer_phone, status
+            """,
+            (
+                payload.telegram_id,
+                payload.salon_id,
+                payload.master_id,
+                payload.master_name,
+                payload.day,
+                payload.time,
+                payload.customer_name,
+                payload.customer_phone,
+            ),
+        )
+        row = cur.fetchone()
+        conn.commit()
+    return row
 
 @app.get("/bookings/by-master/{master_id}", response_model=List[Booking])
 def bookings_by_master(master_id: int):
-    return [b for b in BOOKINGS if b.master_id == master_id]
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            select id, telegram_id, salon_id, master_id, master_name,
+                   day, time, customer_name, customer_phone, status
+            from bookings
+            where master_id = %s
+            order by id desc
+            """,
+            (master_id,),
+        )
+        rows = cur.fetchall()
+    return rows
 
 @app.get("/bookings/by-telegram/{telegram_id}", response_model=List[Booking])
 def bookings_by_user(telegram_id: int):
-    return [b for b in BOOKINGS if b.telegram_id == telegram_id]
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            select id, telegram_id, salon_id, master_id, master_name,
+                   day, time, customer_name, customer_phone, status
+            from bookings
+            where telegram_id = %s
+            order by id desc
+            """,
+            (telegram_id,),
+        )
+        rows = cur.fetchall()
+    return rows
 
 @app.patch("/bookings/{booking_id}/status", response_model=Booking)
 def update_booking_status(
     booking_id: int,
     status: Literal["confirmed", "rejected", "arrived", "no_show"]
 ):
-    for i, b in enumerate(BOOKINGS):
-        if b.id == booking_id:
-            updated = b.model_copy(update={"status": status})
-            BOOKINGS[i] = updated
-            return updated
-    return {"error": "not_found"}
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            update bookings
+            set status = %s
+            where id = %s
+            returning id, telegram_id, salon_id, master_id, master_name,
+                      day, time, customer_name, customer_phone, status
+            """,
+            (status, booking_id),
+        )
+        row = cur.fetchone()
+        conn.commit()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="not_found")
+
+    return row
