@@ -38,7 +38,20 @@ export default function Profile() {
               <div style={{ opacity: 0.7, fontWeight: 900 }}>›</div>
             </div>
 
-            {/* Избранное можно позже, пока не показываем */}
+            <div
+              className="menu-item"
+              role="button"
+              tabIndex={0}
+              onClick={() => nav("/favorites")}
+            >
+              <div className="menu-left">
+                <div className="menu-ico">❤️</div>
+                <div>
+                  <div className="menu-title">Избранные</div>
+                </div>
+              </div>
+              <div style={{ opacity: 0.7, fontWeight: 900 }}>›</div>
+            </div>
             <div
               className="menu-item"
               role="button"

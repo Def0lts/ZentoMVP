@@ -18,6 +18,7 @@ import MasterActivate from "./pages/master/MasterActivate";
 import MasterRequests from "./pages/master/MasterRequests";
 import MasterSchedule from "./pages/master/MasterSchedule";
 import BookingTime from "./pages/BookingTime";
+import Favorites from "./pages/Favorites";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
       <Route path="/success" element={<Success />} />
 
       <Route path="/my-bookings" element={<MyBookings />} />
+      <Route path="/favorites" element={<Favorites />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/support" element={<Support />} />
       <Route path="/about" element={<About />} />
