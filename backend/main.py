@@ -6,6 +6,7 @@ import hmac
 import hashlib
 from urllib.parse import parse_qsl
 
+import requests
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,10 +37,10 @@ SALONS = [
 ]
 
 MASTERS = [
-    {"id": 101, "salon_id": 1, "name": "Мария", "role": "Парикмахер-универсал", "rating": 4.9, "reviews": 15},
-    {"id": 102, "salon_id": 1, "name": "Оксана", "role": "Парикмахер-универсал", "rating": 4.7, "reviews": 87},
-    {"id": 103, "salon_id": 1, "name": "Елена", "role": "Парикмахер-универсал", "rating": 4.8, "reviews": 35},
-    {"id": 201, "salon_id": 2, "name": "Светлана", "role": "Мастер ногтей", "rating": 4.6, "reviews": 24},
+    {"id": 101, "salon_id": 1, "name": "Мария", "role": "Парикмахер-универсал", "rating": 4.9, "reviews": 15, "telegram_id": 111111111},
+    {"id": 102, "salon_id": 1, "name": "Оксана", "role": "Парикмахер-универсал", "rating": 4.7, "reviews": 87, "telegram_id": 1346025315},
+    {"id": 103, "salon_id": 1, "name": "Елена", "role": "Парикмахер-универсал", "rating": 4.8, "reviews": 35, "telegram_id": 333333333},
+    {"id": 201, "salon_id": 2, "name": "Светлана", "role": "Мастер ногтей", "rating": 4.6, "reviews": 24, "telegram_id": 444444444},
 ]
 
 def generate_times(start="10:00", end="20:00", step_min=30):
@@ -111,6 +112,66 @@ def validate_telegram_init_data(init_data: str) -> dict | None:
     try:
         user = json.loads(user_raw)
         return user
+    except Exception:
+        return None
+
+def get_master_by_id(master_id: int):
+    for m in MASTERS:
+        if m["id"] == master_id:
+            return m
+    return None
+
+
+def send_telegram_message(chat_id: int, text: str, reply_markup: dict | None = None):
+    if not BOT_TOKEN:
+        return None
+
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+    }
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+
+    try:
+        r = requests.post(url, json=payload, timeout=10)
+        return r.json()
+    except Exception:
+        return None
+
+
+def answer_callback_query(callback_query_id: str, text: str = ""):
+    if not BOT_TOKEN:
+        return None
+
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/answerCallbackQuery"
+    payload = {
+        "callback_query_id": callback_query_id,
+        "text": text,
+    }
+
+    try:
+        r = requests.post(url, json=payload, timeout=10)
+        return r.json()
+    except Exception:
+        return None
+
+
+def edit_telegram_message(chat_id: int, message_id: int, text: str):
+    if not BOT_TOKEN:
+        return None
+
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/editMessageText"
+    payload = {
+        "chat_id": chat_id,
+        "message_id": message_id,
+        "text": text,
+    }
+
+    try:
+        r = requests.post(url, json=payload, timeout=10)
+        return r.json()
     except Exception:
         return None
 
@@ -258,6 +319,29 @@ def create_booking(payload: BookingCreate):
         row = cur.fetchone()
         conn.commit()
 
+    master = get_master_by_id(payload.master_id)
+    if master and master.get("telegram_id"):
+        text = (
+            f"🔔 Новая запись\n\n"
+            f"Клиент: {payload.customer_name}\n"
+            f"Телефон: {payload.customer_phone}\n\n"
+            f"Дата: {payload.day}\n"
+            f"Время: {payload.time}\n"
+            f"Мастер: {payload.master_name}"
+        )
+
+        reply_markup = {
+            "inline_keyboard": [
+                [
+                    {"text": "✅ Подтвердить", "callback_data": f"booking:confirm:{row['id']}"},
+                    {"text": "❌ Отклонить", "callback_data": f"booking:reject:{row['id']}"},
+                ]
+            ]
+        }
+
+        send_telegram_message(master["telegram_id"], text, reply_markup)
+    
+
     return row
 
 @app.get("/bookings/by-master/{master_id}", response_model=List[Booking])
@@ -382,3 +466,69 @@ def remove_favorite(payload: FavoriteCreate):
         conn.commit()
 
     return {"ok": True, "removed": removed}
+
+
+@app.post("/telegram/webhook")
+async def telegram_webhook(update: dict):
+    callback = update.get("callback_query")
+    if not callback:
+        return {"ok": True}
+
+    callback_id = callback.get("id")
+    data = callback.get("data", "")
+    message = callback.get("message", {})
+    chat = message.get("chat", {})
+    chat_id = chat.get("id")
+    message_id = message.get("message_id")
+
+    parts = data.split(":")
+    if len(parts) != 3 or parts[0] != "booking":
+        answer_callback_query(callback_id, "Неизвестное действие")
+        return {"ok": True}
+
+    action = parts[1]
+    booking_id = int(parts[2])
+
+    if action == "confirm":
+        new_status = "confirmed"
+        result_text = "✅ Запись подтверждена"
+        callback_text = "Запись подтверждена"
+    elif action == "reject":
+        new_status = "rejected"
+        result_text = "❌ Запись отклонена"
+        callback_text = "Запись отклонена"
+    else:
+        answer_callback_query(callback_id, "Неизвестное действие")
+        return {"ok": True}
+
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            update bookings
+            set status = %s
+            where id = %s
+            returning id, customer_name, customer_phone, day, time, master_name, telegram_id
+            """,
+            (new_status, booking_id),
+        )
+        row = cur.fetchone()
+        conn.commit()
+
+    if not row:
+        answer_callback_query(callback_id, "Запись не найдена")
+        return {"ok": True}
+
+    answer_callback_query(callback_id, callback_text)
+
+    if chat_id and message_id:
+        new_text = (
+            f"{result_text}\n\n"
+            f"Клиент: {row['customer_name']}\n"
+            f"Телефон: {row['customer_phone']}\n\n"
+            f"Дата: {row['day']}\n"
+            f"Время: {row['time']}\n"
+            f"Мастер: {row['master_name']}"
+        )
+        edit_telegram_message(chat_id, message_id, new_text)
+
+    return {"ok": True}
