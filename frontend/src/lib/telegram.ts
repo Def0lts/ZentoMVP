@@ -13,6 +13,9 @@ export function getTelegramUser(): TgUser | null {
   return user as TgUser;
 }
 
+
+
+
 export function getTelegramId(fallback = 1111): number {
   const u = getTelegramUser();
   return u?.id ?? fallback;

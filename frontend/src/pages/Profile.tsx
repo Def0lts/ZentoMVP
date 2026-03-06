@@ -1,12 +1,20 @@
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
+import { getTelegramUser } from "../lib/telegram";
 
 export default function Profile() {
   const nav = useNavigate();
 
-  // позже подтянем имя/телефон из Telegram Mini App
-  const name = "Анастасия";
-  const phone = "+111 11 1111";
+  const tgUser = getTelegramUser();
+
+  const firstName = tgUser?.first_name ?? "";
+  const lastName = tgUser?.last_name ?? "";
+  const fullName = `${firstName}${lastName ? " " + lastName : ""}`.trim();
+
+  const name = fullName || "Пользователь";
+  const phoneOrUsername = tgUser?.username
+    ? `@${tgUser.username}`
+    : "Telegram user";
 
   return (
     <div className="zento-screen">
@@ -18,9 +26,9 @@ export default function Profile() {
         </div>
 
         <div className="profile-card">
-          <div className="avatar" />
+          <div className="avatar">{name.slice(0, 1).toUpperCase()}</div>
           <div className="profile-name">{name}</div>
-          <div className="profile-phone">{phone}</div>
+          <div className="profile-phone">{phoneOrUsername}</div>
 
           <div className="menu">
             <div
@@ -52,6 +60,7 @@ export default function Profile() {
               </div>
               <div style={{ opacity: 0.7, fontWeight: 900 }}>›</div>
             </div>
+
             <div
               className="menu-item"
               role="button"
@@ -94,7 +103,6 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* BottomNav как в макете */}
         <BottomNav />
       </div>
     </div>
