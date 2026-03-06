@@ -14,10 +14,6 @@ export default function Profile() {
   const name = fullName || "Пользователь";
   const username = tgUser?.username ? `@${tgUser.username}` : "Telegram user";
 
-  const avatarLetter =
-    name.match(/[A-Za-zА-Яа-яӘәІіҢңҒғҮүҰұҚқӨөҺһ0-9]/)?.[0]?.toUpperCase() ||
-    "U";
-
   return (
     <div className="zento-screen">
       <div className="zento-phone">
@@ -28,7 +24,8 @@ export default function Profile() {
         </div>
 
         <div className="profile-card">
-          <div className="avatar">{avatarLetter}</div>
+          <div className="avatar" />
+
           <div className="profile-name">{name}</div>
           <div className="profile-phone">{username}</div>
 
