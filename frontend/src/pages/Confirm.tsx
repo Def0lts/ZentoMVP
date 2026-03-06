@@ -108,10 +108,9 @@ export default function Confirm() {
         <div className="slot-box">
           <div style={{ fontWeight: 900, fontSize: 13 }}>Детали записи</div>
           <div className="notice" style={{ marginTop: 6 }}>
-            <div className="notice" style={{ marginTop: 6 }}>
-              Мастер: <b>{masterName || "Загрузка..."}</b>
-            </div>
+            Мастер: <b>{masterName || "Загрузка..."}</b>
           </div>
+
           <div className="notice">
             Дата: <b>{day || "—"}</b>
           </div>

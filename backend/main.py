@@ -74,7 +74,7 @@ class Booking(BaseModel):
     time: str
     customer_name: str
     customer_phone: str
-    status: Literal["pending", "confirmed", "rejected", "arrived", "no_show"]
+    status: Literal["pending", "confirmed", "rejected", "arrived", "no_show", "cancelled"]
 
 class BlockSlot(BaseModel):
     id: int
@@ -289,7 +289,7 @@ def bookings_by_user(telegram_id: int):
 @app.patch("/bookings/{booking_id}/status", response_model=Booking)
 def update_booking_status(
     booking_id: int,
-    status: Literal["confirmed", "rejected", "arrived", "no_show"]
+    status: Literal["confirmed", "rejected", "arrived", "no_show", "cancelled"]
 ):
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute(

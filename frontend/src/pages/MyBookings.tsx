@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getBookingsByTelegram, type Booking } from "../lib/api";
+import {
+  getBookingsByTelegram,
+  setBookingStatus,
+  type Booking,
+} from "../lib/api";
 import BottomNav from "../components/BottomNav";
 import { getTelegramId } from "../lib/telegram";
 
@@ -10,6 +14,8 @@ function statusLabel(s: Booking["status"]) {
   if (s === "arrived") return "✔ Клиент пришел";
   if (s === "no_show") return "❌ Клиент не пришел";
   if (s === "rejected") return "🚫 Отклонено";
+  if (s === "cancelled") return "↩️ Отменено клиентом";
+  return s;
 }
 
 export default function MyBookings() {
@@ -18,6 +24,7 @@ export default function MyBookings() {
   const [items, setItems] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<number | null>(null);
 
   const telegramId = getTelegramId(1111);
 
@@ -31,6 +38,18 @@ export default function MyBookings() {
       setError("Не удалось загрузить записи");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function cancelBooking(id: number) {
+    try {
+      setBusyId(id);
+      const updated = await setBookingStatus(id, "cancelled");
+      setItems((prev) => prev.map((b) => (b.id === id ? updated : b)));
+    } catch {
+      setError("Не удалось отменить запись");
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -98,7 +117,9 @@ export default function MyBookings() {
                           ? "Отклонено"
                           : b.status === "arrived"
                             ? "Пришел"
-                            : "Не пришел"}
+                            : b.status === "cancelled"
+                              ? "Отменено"
+                              : "Не пришел"}
                   </div>
                 </div>
 
@@ -112,7 +133,16 @@ export default function MyBookings() {
                 </div>
 
                 <div className="salon-actions">
-                  {/* кнопки можно добавить позже: отменить/написать мастеру */}
+                  {(b.status === "pending" || b.status === "confirmed") && (
+                    <button
+                      className="btn-danger"
+                      onClick={() => cancelBooking(b.id)}
+                      disabled={busyId === b.id}
+                    >
+                      {busyId === b.id ? "Отмена..." : "Отменить"}
+                    </button>
+                  )}
+
                   <button className="btn-ghost" onClick={() => nav("/profile")}>
                     Профиль
                   </button>
@@ -122,7 +152,6 @@ export default function MyBookings() {
           ))}
         </div>
 
-        {/* BottomNav — это раздел профиля */}
         <BottomNav />
       </div>
     </div>

@@ -11,6 +11,7 @@ function statusRu(s: Booking["status"]) {
   if (s === "confirmed") return "Подтверждено";
   if (s === "rejected") return "Отклонено";
   if (s === "arrived") return "Пришел";
+  if (s === "cancelled") return "Отменено";
   return "Не пришел";
 }
 
@@ -49,7 +50,8 @@ export default function MasterRequests() {
       (b) =>
         b.status === "rejected" ||
         b.status === "arrived" ||
-        b.status === "no_show",
+        b.status === "no_show" ||
+        b.status === "cancelled",
     );
   }, [items, tab]);
 
