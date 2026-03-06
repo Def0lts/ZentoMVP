@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getSalons, type Salon } from "../lib/api";
+
+import {
+  addFavorite,
+  getFavorites,
+  getSalons,
+  removeFavorite,
+  type Salon,
+} from "../lib/api";
+import { getTelegramId, getTelegramInitData } from "../lib/telegram";
+
 import BottomNav from "../components/BottomNav";
 
 type Cat = "nails" | "hair" | "massage" | "brows";
@@ -19,6 +28,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
+  const telegramId = getTelegramId(1111);
+  const initData = getTelegramInitData();
 
   async function load() {
     try {
@@ -32,9 +44,42 @@ export default function Home() {
       setLoading(false);
     }
   }
+  async function loadFavorites() {
+    try {
+      const data = await getFavorites(telegramId);
+      setFavoriteIds(data.map((x) => x.salon_id));
+    } catch {
+      // молча, избранное не должно ломать экран
+    }
+  }
+
+  async function toggleFavorite(salonId: number) {
+    const isFav = favoriteIds.includes(salonId);
+
+    try {
+      if (isFav) {
+        await removeFavorite({
+          telegram_id: telegramId,
+          salon_id: salonId,
+          init_data: initData,
+        });
+        setFavoriteIds((prev) => prev.filter((id) => id !== salonId));
+      } else {
+        await addFavorite({
+          telegram_id: telegramId,
+          salon_id: salonId,
+          init_data: initData,
+        });
+        setFavoriteIds((prev) => [...prev, salonId]);
+      }
+    } catch {
+      // можно потом красивый toast сделать
+    }
+  }
 
   useEffect(() => {
     load();
+    loadFavorites();
   }, []);
 
   const recommended = useMemo(() => {
@@ -154,9 +199,14 @@ export default function Home() {
                   }}
                 >
                   <div className="salon-name">{s.name}</div>
-                  <div title="В избранное" style={{ opacity: 0.7 }}>
-                    ♡
-                  </div>
+                  <button
+                    title="В избранное"
+                    className="btn-ghost"
+                    style={{ padding: "6px 10px" }}
+                    onClick={() => toggleFavorite(s.id)}
+                  >
+                    {favoriteIds.includes(s.id) ? "❤️" : "♡"}
+                  </button>
                 </div>
 
                 <div className="salon-meta">

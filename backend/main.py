@@ -82,6 +82,12 @@ class BlockSlot(BaseModel):
     day: str
     time: str
 
+class FavoriteCreate(BaseModel):
+    telegram_id: int
+    salon_id: int
+    init_data: Optional[str] = None
+
+
 def validate_telegram_init_data(init_data: str) -> dict | None:
     if not init_data or not BOT_TOKEN:
         return None
@@ -139,7 +145,7 @@ def free_slots(master_id: int, day: str):
             """
             select time
             from bookings
-            where master_id = %s and day = %s and status != 'rejected'
+            where master_id = %s and day = %s and status not in ('rejected', 'cancelled')
             """,
             (master_id, day),
         )
@@ -309,3 +315,70 @@ def update_booking_status(
         raise HTTPException(status_code=404, detail="not_found")
 
     return row
+# --- Favorites ---
+@app.get("/favorites/{telegram_id}")
+def get_favorites(telegram_id: int):
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            select salon_id
+            from favorites
+            where telegram_id = %s
+            order by id desc
+            """,
+            (telegram_id,),
+        )
+        rows = cur.fetchall()
+    return rows
+
+
+@app.post("/favorites/add")
+def add_favorite(payload: FavoriteCreate):
+    if payload.init_data:
+        user = validate_telegram_init_data(payload.init_data)
+        if not user:
+            raise HTTPException(status_code=403, detail="invalid_telegram_init_data")
+
+        user_id = user.get("id")
+        if user_id != payload.telegram_id:
+            raise HTTPException(status_code=403, detail="telegram_id_mismatch")
+
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            insert into favorites (telegram_id, salon_id)
+            values (%s, %s)
+            on conflict (telegram_id, salon_id) do nothing
+            returning id, telegram_id, salon_id
+            """,
+            (payload.telegram_id, payload.salon_id),
+        )
+        row = cur.fetchone()
+        conn.commit()
+
+    return {"ok": True, "added": bool(row)}
+
+
+@app.post("/favorites/remove")
+def remove_favorite(payload: FavoriteCreate):
+    if payload.init_data:
+        user = validate_telegram_init_data(payload.init_data)
+        if not user:
+            raise HTTPException(status_code=403, detail="invalid_telegram_init_data")
+
+        user_id = user.get("id")
+        if user_id != payload.telegram_id:
+            raise HTTPException(status_code=403, detail="telegram_id_mismatch")
+
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            delete from favorites
+            where telegram_id = %s and salon_id = %s
+            """,
+            (payload.telegram_id, payload.salon_id),
+        )
+        removed = cur.rowcount
+        conn.commit()
+
+    return {"ok": True, "removed": removed}

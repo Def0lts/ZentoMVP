@@ -139,3 +139,35 @@ export async function getBlockedSlots(params: { master_id: number; day?: string 
   if (!res.ok) throw new Error("blocked failed");
   return (await res.json()) as BlockedSlot[];
 }
+
+export type FavoriteCreate = {
+  telegram_id: number;
+  salon_id: number;
+  init_data?: string;
+};
+
+export async function getFavorites(telegramId: number): Promise<{ salon_id: number }[]> {
+  const res = await fetch(`${API_BASE}/favorites/${telegramId}`);
+  if (!res.ok) throw new Error("Failed to load favorites");
+  return res.json();
+}
+
+export async function addFavorite(payload: FavoriteCreate): Promise<{ ok: boolean; added: boolean }> {
+  const res = await fetch(`${API_BASE}/favorites/add`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to add favorite");
+  return res.json();
+}
+
+export async function removeFavorite(payload: FavoriteCreate): Promise<{ ok: boolean; removed: number }> {
+  const res = await fetch(`${API_BASE}/favorites/remove`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to remove favorite");
+  return res.json();
+}
