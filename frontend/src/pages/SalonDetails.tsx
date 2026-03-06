@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getSalon, type Salon } from "../lib/api";
+import {
+  addFavorite,
+  getFavorites,
+  getSalon,
+  removeFavorite,
+  type Salon,
+} from "../lib/api";
 import BottomNav from "../components/BottomNav";
+import { getTelegramId, getTelegramInitData } from "../lib/telegram";
 
 export default function SalonDetails() {
   const { salonId } = useParams();
@@ -10,13 +17,52 @@ export default function SalonDetails() {
   const [salon, setSalon] = useState<Salon | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
+  const telegramId = getTelegramId(1111);
+  const initData = getTelegramInitData();
+
+  async function loadFavorites() {
+    try {
+      const data = await getFavorites(telegramId);
+      setFavoriteIds(data.map((x) => x.salon_id));
+    } catch {
+      // не ломаем экран
+    }
+  }
+
+  async function toggleFavorite() {
+    if (!salon) return;
+
+    const isFav = favoriteIds.includes(salon.id);
+
+    try {
+      if (isFav) {
+        await removeFavorite({
+          telegram_id: telegramId,
+          salon_id: salon.id,
+          init_data: initData,
+        });
+        setFavoriteIds((prev) => prev.filter((id) => id !== salon.id));
+      } else {
+        await addFavorite({
+          telegram_id: telegramId,
+          salon_id: salon.id,
+          init_data: initData,
+        });
+        setFavoriteIds((prev) => [...prev, salon.id]);
+      }
+    } catch {
+      // позже можно красивую ошибку
+    }
+  }
+
   useEffect(() => {
     if (!salonId) return;
-
     (async () => {
       try {
         const data = await getSalon(Number(salonId));
         setSalon(data);
+        await loadFavorites();
       } finally {
         setLoading(false);
       }
@@ -112,9 +158,12 @@ export default function SalonDetails() {
               >
                 Записаться
               </button>
-
-              <button className="btn-ghost" title="В избранное">
-                ♡
+              <button
+                className="btn-ghost"
+                title="В избранное"
+                onClick={toggleFavorite}
+              >
+                {salon && favoriteIds.includes(salon.id) ? "❤️" : "♡"}
               </button>
             </div>
 
