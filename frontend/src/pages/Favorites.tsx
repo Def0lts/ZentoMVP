@@ -13,7 +13,6 @@ export default function Favorites() {
   const nav = useNavigate();
 
   const [salons, setSalons] = useState<Salon[]>([]);
-  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,8 +30,6 @@ export default function Favorites() {
       ]);
 
       const ids = favoritesData.map((x) => x.salon_id);
-      setFavoriteIds(ids);
-
       const filtered = salonsData.filter((s) => ids.includes(s.id));
       setSalons(filtered);
     } catch {
@@ -50,7 +47,6 @@ export default function Favorites() {
         init_data: initData,
       });
 
-      setFavoriteIds((prev) => prev.filter((id) => id !== salonId));
       setSalons((prev) => prev.filter((s) => s.id !== salonId));
     } catch {
       setError("Не удалось удалить из избранного");
