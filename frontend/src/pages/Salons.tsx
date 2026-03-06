@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getSalons, type Salon } from "../lib/api";
+import {
+  addFavorite,
+  getFavorites,
+  getSalons,
+  removeFavorite,
+  type Salon,
+} from "../lib/api";
+import { getTelegramId, getTelegramInitData } from "../lib/telegram";
+
 import BottomNav from "../components/BottomNav";
 
 type Cat = "all" | "nails" | "hair" | "massage" | "brows";
@@ -17,6 +25,10 @@ export default function Salons() {
   const [salons, setSalons] = useState<Salon[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
+  const telegramId = getTelegramId(1111);
+  const initData = getTelegramInitData();
 
   const [sort, setSort] = useState<Sort>("none");
   const [todayOnly, setTodayOnly] = useState(false);
@@ -39,6 +51,7 @@ export default function Salons() {
         setError(null);
         const data = await getSalons();
         setSalons(data);
+        await loadFavorites();
       } catch {
         setError("Ошибка загрузки");
       } finally {
@@ -46,6 +59,39 @@ export default function Salons() {
       }
     })();
   }, []);
+
+  async function loadFavorites() {
+    try {
+      const data = await getFavorites(telegramId);
+      setFavoriteIds(data.map((x) => x.salon_id));
+    } catch {
+      // не ломаем экран
+    }
+  }
+
+  async function toggleFavorite(salonId: number) {
+    const isFav = favoriteIds.includes(salonId);
+
+    try {
+      if (isFav) {
+        await removeFavorite({
+          telegram_id: telegramId,
+          salon_id: salonId,
+          init_data: initData,
+        });
+        setFavoriteIds((prev) => prev.filter((id) => id !== salonId));
+      } else {
+        await addFavorite({
+          telegram_id: telegramId,
+          salon_id: salonId,
+          init_data: initData,
+        });
+        setFavoriteIds((prev) => [...prev, salonId]);
+      }
+    } catch {
+      // позже можно toast
+    }
+  }
 
   const filtered = useMemo(() => {
     let list =
@@ -159,9 +205,15 @@ export default function Salons() {
                   }}
                 >
                   <div className="salon-name">{s.name}</div>
-                  <div title="В избранное" style={{ opacity: 0.7 }}>
-                    ♡
-                  </div>
+
+                  <button
+                    title="В избранное"
+                    className="btn-ghost"
+                    style={{ padding: "6px 10px" }}
+                    onClick={() => toggleFavorite(s.id)}
+                  >
+                    {favoriteIds.includes(s.id) ? "❤️" : "♡"}
+                  </button>
                 </div>
 
                 <div className="salon-meta">
