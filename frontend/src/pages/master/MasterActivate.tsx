@@ -17,15 +17,19 @@ export default function MasterActivate() {
       setSaving(true);
       setError(null);
 
-      await activateMaster({
+      const result = await activateMaster({
         telegram_id: telegramId,
         init_data: initData,
         code: code.trim(),
       });
 
+      console.log("activateMaster result =", result);
+
       localStorage.setItem("zento_mode", "master");
       nav("/master");
     } catch (e: any) {
+      console.log("activateMaster error =", e);
+
       const msg = String(e?.message || "");
       if (msg.includes("invalid_activation_code")) {
         setError("Неверный код активации");
@@ -34,7 +38,7 @@ export default function MasterActivate() {
       } else if (msg.includes("telegram_already_bound_to_other_master")) {
         setError("Этот Telegram аккаунт уже привязан к другому мастеру");
       } else {
-        setError("Не удалось активировать мастер-профиль");
+        setError(`Не удалось активировать мастер-профиль: ${msg}`);
       }
     } finally {
       setSaving(false);
