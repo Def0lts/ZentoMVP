@@ -2,9 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   getBookingsByMaster,
+  getMasterByTelegram,
   setBookingStatus,
   type Booking,
+  type MasterAccount,
 } from "../../lib/api";
+import { getTelegramId } from "../../lib/telegram";
 
 function statusRu(s: Booking["status"]) {
   if (s === "pending") return "Ожидает";
@@ -17,8 +20,9 @@ function statusRu(s: Booking["status"]) {
 
 export default function MasterRequests() {
   const nav = useNavigate();
-  const masterId = 101;
+  const telegramId = getTelegramId(1111);
 
+  const [master, setMaster] = useState<MasterAccount | null>(null);
   const [items, setItems] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"new" | "confirmed" | "history">("new");
@@ -29,7 +33,17 @@ export default function MasterRequests() {
     try {
       setLoading(true);
       setError(null);
-      const data = await getBookingsByMaster(masterId);
+
+      const m = await getMasterByTelegram(telegramId);
+      if (!m) {
+        setMaster(null);
+        setItems([]);
+        return;
+      }
+
+      setMaster(m);
+
+      const data = await getBookingsByMaster(m.id);
       setItems(data);
     } catch {
       setError("Не удалось загрузить заявки");
@@ -66,6 +80,39 @@ export default function MasterRequests() {
     } finally {
       setBusyId(null);
     }
+  }
+
+  if (!loading && !master) {
+    return (
+      <div className="zento-screen">
+        <div className="zento-phone">
+          <div className="topbar">
+            <button
+              className="pill"
+              onClick={() => nav("/master")}
+              style={{ cursor: "pointer" }}
+            >
+              ←
+            </button>
+            <div style={{ fontWeight: 900 }}>Заявки</div>
+            <div style={{ width: 44 }} />
+          </div>
+
+          <div className="card" style={{ padding: 16, borderRadius: 26 }}>
+            <div style={{ fontWeight: 900 }}>Мастер не активирован</div>
+            <div className="notice" style={{ marginTop: 8 }}>
+              Сначала активируй мастер-профиль по коду.
+            </div>
+            <button
+              className="big-primary"
+              onClick={() => nav("/master/activate")}
+            >
+              Активировать
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -194,8 +241,6 @@ export default function MasterRequests() {
             </div>
           ))}
         </div>
-
-        {/* BottomNav тут не нужен */}
       </div>
     </div>
   );

@@ -171,3 +171,45 @@ export async function removeFavorite(payload: FavoriteCreate): Promise<{ ok: boo
   if (!res.ok) throw new Error("Failed to remove favorite");
   return res.json();
 }
+
+
+export type MasterAccount = {
+  id: number;
+  salon_id: number;
+  name: string;
+  role: string;
+  rating: number;
+  reviews: number;
+  telegram_id?: number | null;
+  is_activated: boolean;
+};
+
+export type MasterActivatePayload = {
+  telegram_id: number;
+  init_data?: string;
+  code: string;
+};
+
+export async function getMasterByTelegram(
+  telegramId: number,
+): Promise<MasterAccount | null> {
+  const res = await fetch(`${API_BASE}/master/by-telegram/${telegramId}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("Failed to load master");
+  return res.json();
+}
+
+export async function activateMaster(
+  payload: MasterActivatePayload,
+): Promise<MasterAccount> {
+  const res = await fetch(`${API_BASE}/master/activate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Failed to activate master");
+  }
+  return res.json();
+}

@@ -97,7 +97,7 @@ export default function Profile() {
               <button className="active" onClick={() => nav("/profile")}>
                 🟢 Клиент
               </button>
-              <button onClick={() => nav("/master/activate")}>⚪ Мастер</button>
+              <button onClick={() => nav("/master")}>⚪ Мастер</button>
             </div>
           </div>
         </div>

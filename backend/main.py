@@ -89,6 +89,11 @@ class FavoriteCreate(BaseModel):
     init_data: Optional[str] = None
 
 
+class MasterActivateRequest(BaseModel):
+    telegram_id: int
+    init_data: Optional[str] = None
+    code: str
+
 def validate_telegram_init_data(init_data: str) -> dict | None:
     if not init_data or not BOT_TOKEN:
         return None
@@ -114,6 +119,43 @@ def validate_telegram_init_data(init_data: str) -> dict | None:
         return user
     except Exception:
         return None
+
+def get_master_from_list(master_id: int):
+    for m in MASTERS:
+        if m["id"] == master_id:
+            return m
+    return None
+
+
+def get_bound_master_telegram_id(master_id: int):
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            select telegram_id
+            from master_access
+            where master_id = %s
+            """,
+            (master_id,),
+        )
+        row = cur.fetchone()
+
+    if not row:
+        return None
+
+    return row.get("telegram_id")
+
+
+def build_master_response(master: dict, telegram_id: Optional[int]):
+    return {
+        "id": master["id"],
+        "salon_id": master["salon_id"],
+        "name": master["name"],
+        "role": master["role"],
+        "rating": master["rating"],
+        "reviews": master["reviews"],
+        "telegram_id": telegram_id,
+        "is_activated": telegram_id is not None,
+    } 
 
 def get_master_by_id(master_id: int):
     for m in MASTERS:
@@ -195,6 +237,94 @@ def get_salon(salon_id: int):
 @app.get("/salons/{salon_id}/masters")
 def get_salon_masters(salon_id: int):
     return [m for m in MASTERS if m["salon_id"] == salon_id]
+
+
+
+
+@app.get("/master/by-telegram/{telegram_id}")
+def get_master_by_telegram(telegram_id: int):
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            select master_id, telegram_id
+            from master_access
+            where telegram_id = %s
+            """,
+            (telegram_id,),
+        )
+        row = cur.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="master_not_found")
+
+    master = get_master_from_list(row["master_id"])
+    if not master:
+        raise HTTPException(status_code=404, detail="master_not_found")
+
+    return build_master_response(master, row["telegram_id"])
+
+
+@app.post("/master/activate")
+def activate_master(payload: MasterActivateRequest):
+    if payload.init_data:
+        user = validate_telegram_init_data(payload.init_data)
+        if not user:
+            raise HTTPException(status_code=403, detail="invalid_telegram_init_data")
+
+        user_id = user.get("id")
+        if user_id != payload.telegram_id:
+            raise HTTPException(status_code=403, detail="telegram_id_mismatch")
+
+    with get_conn() as conn, conn.cursor() as cur:
+        # найдём мастера по коду
+        cur.execute(
+            """
+            select master_id, telegram_id
+            from master_access
+            where activation_code = %s
+            """,
+            (payload.code.strip(),),
+        )
+        row = cur.fetchone()
+
+        if not row:
+            raise HTTPException(status_code=404, detail="invalid_activation_code")
+
+        # если мастер уже привязан к другому tg id
+        if row["telegram_id"] is not None and row["telegram_id"] != payload.telegram_id:
+            raise HTTPException(status_code=409, detail="master_already_activated")
+
+        # если этот tg id уже привязан к другому мастеру
+        cur.execute(
+            """
+            select master_id
+            from master_access
+            where telegram_id = %s and master_id != %s
+            """,
+            (payload.telegram_id, row["master_id"]),
+        )
+        exists_other = cur.fetchone()
+        if exists_other:
+            raise HTTPException(status_code=409, detail="telegram_already_bound_to_other_master")
+
+        cur.execute(
+            """
+            update master_access
+            set telegram_id = %s,
+                activated_at = now()
+            where master_id = %s
+            returning master_id, telegram_id
+            """,
+            (payload.telegram_id, row["master_id"]),
+        )
+        updated = cur.fetchone()
+        conn.commit()
+
+    master = get_master_from_list(updated["master_id"])
+    if not master:
+        raise HTTPException(status_code=404, detail="master_not_found")
+
+    return build_master_response(master, updated["telegram_id"])
 
 # --- Slots ---
 @app.get("/slots/free")
@@ -318,9 +448,8 @@ def create_booking(payload: BookingCreate):
         )
         row = cur.fetchone()
         conn.commit()
-
-    master = get_master_by_id(payload.master_id)
-    if master and master.get("telegram_id"):
+    master_telegram_id = get_bound_master_telegram_id(payload.master_id)
+    if master_telegram_id:
         text = (
             f"🔔 Новая запись\n\n"
             f"Клиент: {payload.customer_name}\n"
@@ -339,7 +468,7 @@ def create_booking(payload: BookingCreate):
             ]
         }
 
-        send_telegram_message(master["telegram_id"], text, reply_markup)
+        send_telegram_message(master_telegram_id, text, reply_markup)
     
 
     return row
