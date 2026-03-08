@@ -49,6 +49,11 @@ export function isTelegramWebApp(): boolean {
   return !!w?.Telegram?.WebApp;
 }
 
+export function getProfileRoute(): "/profile" | "/master" {
+  const mode = localStorage.getItem("zento_mode");
+  return mode === "master" ? "/master" : "/profile";
+}
+
 export function initTelegramWebApp() {
   const w = window as any;
   const tg = w?.Telegram?.WebApp;

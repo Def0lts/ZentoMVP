@@ -8,7 +8,11 @@ import {
   type Salon,
 } from "../lib/api";
 import BottomNav from "../components/BottomNav";
-import { getTelegramId, getTelegramInitData } from "../lib/telegram";
+import {
+  getTelegramId,
+  getTelegramInitData,
+  getProfileRoute,
+} from "../lib/telegram";
 
 export default function SalonDetails() {
   const { salonId } = useParams();
@@ -96,9 +100,10 @@ export default function SalonDetails() {
             ←
           </button>
           <div style={{ fontWeight: 900 }}>Zento</div>
+
           <button
             className="pill"
-            onClick={() => nav("/profile")}
+            onClick={() => nav(getProfileRoute())}
             style={{ cursor: "pointer" }}
           >
             👤
