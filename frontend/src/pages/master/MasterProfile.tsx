@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import BottomNav from "../../components/BottomNav";
 import { getMasterByTelegram, type MasterAccount } from "../../lib/api";
 import { getTelegramId } from "../../lib/telegram";
 
@@ -15,6 +16,10 @@ export default function MasterProfile() {
       setLoading(true);
       const data = await getMasterByTelegram(telegramId);
       setMaster(data);
+
+      if (data) {
+        localStorage.setItem("zento_mode", "master");
+      }
     } catch {
       setMaster(null);
     } finally {
@@ -65,6 +70,8 @@ export default function MasterProfile() {
               Активировать
             </button>
           </div>
+
+          <BottomNav profilePath="/master" />
         </div>
       </div>
     );
@@ -130,13 +137,29 @@ export default function MasterProfile() {
           <div className="role-switch">
             <div style={{ fontWeight: 900 }}>Режим:</div>
             <div className="role-pill">
-              <button onClick={() => nav("/profile")}>🟢 Клиент</button>
-              <button className="active" onClick={() => nav("/master")}>
+              <button
+                onClick={() => {
+                  localStorage.setItem("zento_mode", "client");
+                  nav("/profile");
+                }}
+              >
+                🟢 Клиент
+              </button>
+
+              <button
+                className="active"
+                onClick={() => {
+                  localStorage.setItem("zento_mode", "master");
+                  nav("/master");
+                }}
+              >
                 ⚪ Мастер
               </button>
             </div>
           </div>
         </div>
+
+        <BottomNav profilePath="/master" />
       </div>
     </div>
   );

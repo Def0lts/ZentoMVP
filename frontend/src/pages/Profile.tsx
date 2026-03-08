@@ -1,9 +1,14 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import { getTelegramUser } from "../lib/telegram";
 
 export default function Profile() {
   const nav = useNavigate();
+
+  useEffect(() => {
+    localStorage.setItem("zento_mode", "client");
+  }, []);
 
   const tgUser = getTelegramUser();
 
@@ -94,10 +99,24 @@ export default function Profile() {
           <div className="role-switch">
             <div style={{ fontWeight: 900 }}>Режим:</div>
             <div className="role-pill">
-              <button className="active" onClick={() => nav("/profile")}>
+              <button
+                className="active"
+                onClick={() => {
+                  localStorage.setItem("zento_mode", "client");
+                  nav("/profile");
+                }}
+              >
                 🟢 Клиент
               </button>
-              <button onClick={() => nav("/master")}>⚪ Мастер</button>
+
+              <button
+                onClick={() => {
+                  localStorage.setItem("zento_mode", "master");
+                  nav("/master");
+                }}
+              >
+                ⚪ Мастер
+              </button>
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import BottomNav from "../../components/BottomNav";
 import {
   getBookingsByMaster,
   getMasterByTelegram,
@@ -41,6 +42,7 @@ export default function MasterRequests() {
         return;
       }
 
+      localStorage.setItem("zento_mode", "master");
       setMaster(m);
 
       const data = await getBookingsByMaster(m.id);
@@ -110,6 +112,8 @@ export default function MasterRequests() {
               Активировать
             </button>
           </div>
+
+          <BottomNav profilePath="/master" />
         </div>
       </div>
     );
@@ -241,6 +245,8 @@ export default function MasterRequests() {
             </div>
           ))}
         </div>
+
+        <BottomNav profilePath="/master" />
       </div>
     </div>
   );

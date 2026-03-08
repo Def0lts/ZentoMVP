@@ -7,6 +7,24 @@ import {
   isTelegramWebApp,
 } from "../lib/telegram";
 
+function normalizeName(value: string) {
+  return value.replace(/\s+/g, " ").trimStart();
+}
+
+function normalizePhone(value: string) {
+  return value.replace(/[^\d+()\-\s]/g, "").slice(0, 20);
+}
+
+function isValidName(value: string) {
+  const trimmed = value.trim();
+  return trimmed.length >= 2 && trimmed.length <= 40;
+}
+
+function isValidPhone(value: string) {
+  const digits = value.replace(/\D/g, "");
+  return digits.length >= 7 && value.trim().length <= 20;
+}
+
 export default function Confirm() {
   const nav = useNavigate();
   const loc = useLocation();
@@ -17,14 +35,11 @@ export default function Confirm() {
   const day = qp.get("day") || "";
   const time = qp.get("time") || "";
 
-  // было: const masterName = qp.get("masterName") || "Мастер";
   const masterNameFromQuery = qp.get("masterName") ?? "";
   const [masterName, setMasterName] = useState(masterNameFromQuery);
 
   useEffect(() => {
     if (!salonId || !masterId) return;
-
-    // Если имя нормальное — не трогаем
     if (masterName && masterName !== "Мастер") return;
 
     (async () => {
@@ -33,7 +48,7 @@ export default function Confirm() {
         const found = masters.find((m) => m.id === masterId);
         if (found?.name) setMasterName(found.name);
       } catch {
-        // ничего, просто останется fallback в интерфейсе
+        // ignore
       }
     })();
   }, [salonId, masterId, masterName]);
@@ -52,8 +67,14 @@ export default function Confirm() {
       setError("Не хватает данных для записи");
       return;
     }
-    if (!name.trim() || !phone.trim()) {
-      setError("Заполни имя и телефон");
+
+    if (!isValidName(name)) {
+      setError("Имя должно быть от 2 до 40 символов");
+      return;
+    }
+
+    if (!isValidPhone(phone)) {
+      setError("Введите корректный телефон");
       return;
     }
 
@@ -86,8 +107,6 @@ export default function Confirm() {
     }
   }
 
-  // дальше твой JSX без изменений, только вывод:
-  // Мастер: <b>{masterName || "Мастер"}</b>
   return (
     <div className="zento-screen">
       <div className="zento-phone">
@@ -107,6 +126,7 @@ export default function Confirm() {
 
         <div className="slot-box">
           <div style={{ fontWeight: 900, fontSize: 13 }}>Детали записи</div>
+
           <div className="notice" style={{ marginTop: 6 }}>
             Мастер: <b>{masterName || "Загрузка..."}</b>
           </div>
@@ -114,6 +134,7 @@ export default function Confirm() {
           <div className="notice">
             Дата: <b>{day || "—"}</b>
           </div>
+
           <div className="notice">
             Время: <b>{time || "—"}</b>
           </div>
@@ -123,13 +144,17 @@ export default function Confirm() {
               className="input"
               placeholder="Имя"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              maxLength={40}
+              onChange={(e) => setName(normalizeName(e.target.value))}
             />
+
             <input
               className="input"
               placeholder="Телефон"
+              inputMode="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              maxLength={20}
+              onChange={(e) => setPhone(normalizePhone(e.target.value))}
             />
           </div>
 
@@ -147,8 +172,6 @@ export default function Confirm() {
         <button className="big-primary" onClick={onSubmit} disabled={saving}>
           {saving ? "Создаю..." : "Записаться"}
         </button>
-
-        {/* BottomNav здесь НЕ нужен */}
       </div>
     </div>
   );

@@ -1,88 +1,68 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import BottomNav from "../../components/BottomNav";
 import {
-  getBookingsByMaster,
+  blockSlot,
+  getBlockedSlots,
   getMasterByTelegram,
-  setBookingStatus,
-  type Booking,
+  unblockSlot,
+  type BlockedSlot,
   type MasterAccount,
 } from "../../lib/api";
 import { getTelegramId } from "../../lib/telegram";
 
-function statusRu(s: Booking["status"]) {
-  if (s === "pending") return "Ожидает";
-  if (s === "confirmed") return "Подтверждено";
-  if (s === "rejected") return "Отклонено";
-  if (s === "arrived") return "Пришел";
-  if (s === "cancelled") return "Отменено";
-  return "Не пришел";
+function getTodayDate() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
-export default function MasterRequests() {
+export default function MasterSchedule() {
   const nav = useNavigate();
   const telegramId = getTelegramId(1111);
 
   const [master, setMaster] = useState<MasterAccount | null>(null);
-  const [items, setItems] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"new" | "confirmed" | "history">("new");
-  const [error, setError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<number | null>(null);
+  const [blockDay, setBlockDay] = useState(getTodayDate());
+  const [blockTime, setBlockTime] = useState("15:00");
+  const [msg, setMsg] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  async function load() {
+  const [blocked, setBlocked] = useState<BlockedSlot[]>([]);
+  const [loadingBlocked, setLoadingBlocked] = useState(false);
+
+  async function loadBlocked() {
     try {
-      setLoading(true);
-      setError(null);
+      setLoadingBlocked(true);
 
       const m = await getMasterByTelegram(telegramId);
       if (!m) {
         setMaster(null);
-        setItems([]);
+        setBlocked([]);
         return;
       }
 
+      localStorage.setItem("zento_mode", "master");
       setMaster(m);
 
-      const data = await getBookingsByMaster(m.id);
-      setItems(data);
-    } catch {
-      setError("Не удалось загрузить заявки");
+      const data = await getBlockedSlots({
+        master_id: m.id,
+        day: blockDay,
+      });
+
+      data.sort((a, b) => a.time.localeCompare(b.time));
+      setBlocked(data);
     } finally {
-      setLoading(false);
+      setLoadingBlocked(false);
     }
   }
 
   useEffect(() => {
-    load();
-  }, []);
+    loadBlocked();
+  }, [blockDay]);
 
-  const filtered = useMemo(() => {
-    if (tab === "new") return items.filter((b) => b.status === "pending");
-    if (tab === "confirmed")
-      return items.filter((b) => b.status === "confirmed");
-    return items.filter(
-      (b) =>
-        b.status === "rejected" ||
-        b.status === "arrived" ||
-        b.status === "no_show" ||
-        b.status === "cancelled",
-    );
-  }, [items, tab]);
-
-  async function doStatus(
-    id: number,
-    status: "confirmed" | "rejected" | "arrived" | "no_show",
-  ) {
-    try {
-      setBusyId(id);
-      const updated = await setBookingStatus(id, status);
-      setItems((prev) => prev.map((b) => (b.id === id ? updated : b)));
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  if (!loading && !master) {
+  if (!loadingBlocked && !master) {
     return (
       <div className="zento-screen">
         <div className="zento-phone">
@@ -94,7 +74,7 @@ export default function MasterRequests() {
             >
               ←
             </button>
-            <div style={{ fontWeight: 900 }}>Заявки</div>
+            <div style={{ fontWeight: 900 }}>График</div>
             <div style={{ width: 44 }} />
           </div>
 
@@ -110,6 +90,8 @@ export default function MasterRequests() {
               Активировать
             </button>
           </div>
+
+          <BottomNav profilePath="/master" />
         </div>
       </div>
     );
@@ -126,121 +108,128 @@ export default function MasterRequests() {
           >
             ←
           </button>
-          <div style={{ fontWeight: 900 }}>Заявки</div>
-          <button className="pill" onClick={load} style={{ cursor: "pointer" }}>
+          <div style={{ fontWeight: 900 }}>График</div>
+          <button
+            className="pill"
+            onClick={loadBlocked}
+            style={{ cursor: "pointer" }}
+          >
             ↻
           </button>
         </div>
 
-        <div className="chips master-tabs">
+        <div className="card" style={{ padding: 16, borderRadius: 26 }}>
+          <div style={{ fontWeight: 900, fontSize: 14 }}>Занять время</div>
+          <div className="notice">
+            Используй, если запись пришла через WhatsApp или клиент записался
+            лично.
+          </div>
+
+          <div className="form">
+            <input
+              className="input"
+              type="date"
+              value={blockDay}
+              onChange={(e) => setBlockDay(e.target.value)}
+            />
+            <input
+              className="input"
+              type="time"
+              value={blockTime}
+              onChange={(e) => setBlockTime(e.target.value)}
+            />
+          </div>
+
           <button
-            className={`chip ${tab === "new" ? "chip-active" : ""}`}
-            onClick={() => setTab("new")}
+            className="big-primary"
+            disabled={busy || !master || !blockDay || !blockTime}
+            onClick={async () => {
+              if (!master) return;
+
+              try {
+                setBusy(true);
+                setMsg(null);
+
+                await blockSlot({
+                  master_id: master.id,
+                  day: blockDay,
+                  time: blockTime,
+                });
+
+                await loadBlocked();
+                setMsg("Слот занят ✅");
+              } catch {
+                setMsg("Ошибка: не удалось занять слот");
+              } finally {
+                setBusy(false);
+              }
+            }}
           >
-            🟡 Новые
+            {busy ? "Занимаю..." : "Занять"}
           </button>
-          <button
-            className={`chip ${tab === "confirmed" ? "chip-active" : ""}`}
-            onClick={() => setTab("confirmed")}
-          >
-            🟢 Подтвержденные
-          </button>
-          <button
-            className={`chip ${tab === "history" ? "chip-active" : ""}`}
-            onClick={() => setTab("history")}
-          >
-            ⚪ История
-          </button>
+
+          {msg && (
+            <div className="notice" style={{ marginTop: 10 }}>
+              {msg}
+            </div>
+          )}
         </div>
 
-        {loading && <div style={{ padding: 8, opacity: 0.8 }}>Загрузка...</div>}
-        {error && <div style={{ padding: 8, color: "crimson" }}>{error}</div>}
+        <div className="section-title">Заблокированные слоты</div>
 
-        {!loading && !error && filtered.length === 0 && (
-          <div style={{ padding: 8, opacity: 0.8 }}>Пока пусто</div>
+        {loadingBlocked && (
+          <div style={{ padding: 8, opacity: 0.8 }}>Загрузка...</div>
         )}
 
-        <div style={{ display: "grid", gap: 12 }}>
-          {filtered.map((b) => (
-            <div key={b.id} className="salon-card" style={{ padding: 12 }}>
-              <div className="salon-img" style={{ width: 64, height: 64 }}>
-                📌
+        {!loadingBlocked && blocked.length === 0 && (
+          <div style={{ padding: 8, opacity: 0.75 }}>
+            На этот день блокировок нет
+          </div>
+        )}
+
+        <div style={{ display: "grid", gap: 10 }}>
+          {blocked.map((s) => (
+            <div key={s.id} className="menu-item">
+              <div className="menu-left">
+                <div className="menu-ico">⛔</div>
+                <div>
+                  <div className="menu-title">{s.time}</div>
+                  <div className="menu-sub">{s.day}</div>
+                </div>
               </div>
 
-              <div style={{ flex: 1 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 10,
-                  }}
-                >
-                  <div className="salon-name" style={{ fontSize: 13 }}>
-                    {b.customer_name}
-                  </div>
+              <button
+                className="btn-ghost"
+                disabled={busy || !master}
+                onClick={async () => {
+                  if (!master) return;
 
-                  <div
-                    className="chip chip-active"
-                    style={{
-                      padding: "6px 10px",
-                      fontSize: 11,
-                      boxShadow: "none",
-                    }}
-                  >
-                    {statusRu(b.status)}
-                  </div>
-                </div>
+                  try {
+                    setBusy(true);
+                    setMsg(null);
 
-                <div className="salon-meta" style={{ marginTop: 6 }}>
-                  <span>📞 {b.customer_phone}</span>
-                </div>
+                    await unblockSlot({
+                      master_id: master.id,
+                      day: s.day,
+                      time: s.time,
+                    });
 
-                <div className="salon-meta" style={{ marginTop: 6 }}>
-                  <span>📅 {b.day}</span>
-                  <span>🕒 {b.time}</span>
-                </div>
-
-                {b.status === "pending" && (
-                  <div className="master-actions">
-                    <button
-                      className="btn-ok"
-                      onClick={() => doStatus(b.id, "confirmed")}
-                      disabled={busyId === b.id}
-                    >
-                      ✅ Подтвердить
-                    </button>
-                    <button
-                      className="btn-danger"
-                      onClick={() => doStatus(b.id, "rejected")}
-                      disabled={busyId === b.id}
-                    >
-                      ❌ Отклонить
-                    </button>
-                  </div>
-                )}
-
-                {b.status === "confirmed" && (
-                  <div className="master-actions">
-                    <button
-                      className="btn-ok"
-                      onClick={() => doStatus(b.id, "arrived")}
-                      disabled={busyId === b.id}
-                    >
-                      ✔ Пришел
-                    </button>
-                    <button
-                      className="btn-danger"
-                      onClick={() => doStatus(b.id, "no_show")}
-                      disabled={busyId === b.id}
-                    >
-                      ✖ Не пришел
-                    </button>
-                  </div>
-                )}
-              </div>
+                    setMsg(`Слот ${s.time} освобождён ✅`);
+                    await loadBlocked();
+                  } catch {
+                    setMsg("Ошибка: не удалось освободить слот");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                Освободить
+              </button>
             </div>
           ))}
         </div>
+
+        <BottomNav profilePath="/master" />
       </div>
     </div>
   );
