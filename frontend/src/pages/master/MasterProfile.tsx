@@ -143,7 +143,7 @@ export default function MasterProfile() {
                   nav("/profile");
                 }}
               >
-                🟢 Клиент
+                ⚪ Клиент
               </button>
 
               <button
@@ -153,7 +153,7 @@ export default function MasterProfile() {
                   nav("/master");
                 }}
               >
-                ⚪ Мастер
+                🟢 Мастер
               </button>
             </div>
           </div>
