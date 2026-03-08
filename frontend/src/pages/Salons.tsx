@@ -7,7 +7,11 @@ import {
   removeFavorite,
   type Salon,
 } from "../lib/api";
-import { getTelegramId, getTelegramInitData } from "../lib/telegram";
+import {
+  getTelegramId,
+  getTelegramInitData,
+  getProfileRoute,
+} from "../lib/telegram";
 
 import BottomNav from "../components/BottomNav";
 
@@ -135,7 +139,7 @@ export default function Salons() {
           <div style={{ fontWeight: 900 }}>{title}</div>
           <button
             className="pill"
-            onClick={() => nav("/profile")}
+            onClick={() => nav(getProfileRoute())}
             style={{ cursor: "pointer" }}
           >
             👤
