@@ -69,7 +69,7 @@ export default function Salons() {
       const data = await getFavorites(telegramId);
       setFavoriteIds(data.map((x) => x.salon_id));
     } catch {
-      // не ломаем экран
+      // ignore
     }
   }
 
@@ -93,7 +93,7 @@ export default function Salons() {
         setFavoriteIds((prev) => [...prev, salonId]);
       }
     } catch {
-      // позже можно toast
+      // ignore
     }
   }
 
@@ -110,16 +110,17 @@ export default function Salons() {
       });
     }
 
-    // todayOnly пока просто UI-переключатель, чтобы соответствовать макету.
-    // Реальную “свободно сегодня” можно связать со слотами позже.
     if (todayOnly) {
       list = [...list];
     }
 
-    if (sort === "price_asc")
+    if (sort === "price_asc") {
       list = [...list].sort((a, b) => a.price_from - b.price_from);
-    if (sort === "price_desc")
+    }
+
+    if (sort === "price_desc") {
       list = [...list].sort((a, b) => b.price_from - a.price_from);
+    }
 
     return list;
   }, [salons, cat, q, sort, todayOnly]);
@@ -127,7 +128,6 @@ export default function Salons() {
   return (
     <div className="zento-screen">
       <div className="zento-phone">
-        {/* header */}
         <div className="topbar">
           <button
             className="pill"
@@ -146,7 +146,6 @@ export default function Salons() {
           </button>
         </div>
 
-        {/* search */}
         <div className="card search">
           <span style={{ opacity: 0.8 }}>🔎</span>
           <input
@@ -156,7 +155,6 @@ export default function Salons() {
           />
         </div>
 
-        {/* chips */}
         <div className="chips">
           <button
             className={`chip ${todayOnly ? "chip-active" : ""}`}
@@ -233,6 +231,7 @@ export default function Salons() {
                   >
                     Записаться
                   </button>
+
                   <button
                     className="btn-ghost"
                     onClick={() => nav(`/salons/${s.id}`)}
@@ -245,7 +244,6 @@ export default function Salons() {
           ))}
         </div>
 
-        {/* bottom nav */}
         <BottomNav />
       </div>
     </div>
