@@ -611,7 +611,7 @@ def free_slots(master_id: int, day: str, service_id: int | None = None):
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute(
             """
-            select time
+            select time, service_duration
             from bookings
             where master_id = %s
               and day = %s
@@ -619,7 +619,7 @@ def free_slots(master_id: int, day: str, service_id: int | None = None):
             """,
             (master_id, validated_day),
         )
-        booked_times = {row["time"] for row in cur.fetchall()}
+        booking_rows = cur.fetchall()
 
         cur.execute(
             """
@@ -631,6 +631,23 @@ def free_slots(master_id: int, day: str, service_id: int | None = None):
             (master_id, validated_day),
         )
         blocked_times = {row["time"] for row in cur.fetchall()}
+
+    booked_times = set()
+
+    for row in booking_rows:
+        start_time = row["time"]
+        booking_duration = row["service_duration"] or 30
+        booking_slots_needed = max(1, booking_duration // 30)
+
+        if start_time not in all_times:
+            continue
+
+        start_index = all_times.index(start_time)
+
+        for i in range(booking_slots_needed):
+            idx = start_index + i
+            if idx < len(all_times):
+                booked_times.add(all_times[idx])
 
     busy = booked_times | blocked_times
 
