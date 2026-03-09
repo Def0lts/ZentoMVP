@@ -198,17 +198,31 @@ def get_master_from_list(master_id: int):
 
 
 def get_master_by_id(master_id: int):
-    for m in MASTERS:
-        if m["id"] == master_id:
-            return m
-    return None
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            select id, salon_id, name, role, rating, reviews
+            from masters
+            where id = %s
+            """,
+            (master_id,),
+        )
+        row = cur.fetchone()
+    return row
 
 
 def get_salon_by_id(salon_id: int):
-    for s in SALONS:
-        if s["id"] == salon_id:
-            return s
-    return None
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            select id, name, address, price_from, rating, km, category
+            from salons
+            where id = %s
+            """,
+            (salon_id,),
+        )
+        row = cur.fetchone()
+    return row
 
 
 def get_bound_master_telegram_id(master_id: int):
@@ -402,20 +416,40 @@ def root():
 # --- Salons / masters ---
 @app.get("/salons")
 def get_salons():
-    return SALONS
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            select id, name, address, price_from, rating, km, category
+            from salons
+            order by id
+            """
+        )
+        rows = cur.fetchall()
+    return rows
 
 
 @app.get("/salons/{salon_id}")
 def get_salon(salon_id: int):
-    for s in SALONS:
-        if s["id"] == salon_id:
-            return s
-    return {"error": "not_found"}
+    salon = get_salon_by_id(salon_id)
+    if not salon:
+        return {"error": "not_found"}
+    return salon
 
 
 @app.get("/salons/{salon_id}/masters")
 def get_salon_masters(salon_id: int):
-    return [m for m in MASTERS if m["salon_id"] == salon_id]
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            select id, salon_id, name, role, rating, reviews
+            from masters
+            where salon_id = %s
+            order by id
+            """,
+            (salon_id,),
+        )
+        rows = cur.fetchall()
+    return rows
 
 
 @app.get("/master/by-telegram/{telegram_id}")
