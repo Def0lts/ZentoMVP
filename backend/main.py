@@ -362,6 +362,10 @@ def validate_customer_name(name: str) -> str:
     if len(value) < 2 or len(value) > 40:
         raise HTTPException(status_code=422, detail="invalid_customer_name")
 
+    has_letter = any(ch.isalpha() for ch in value)
+    if not has_letter:
+        raise HTTPException(status_code=422, detail="invalid_customer_name")
+
     return value
 
 

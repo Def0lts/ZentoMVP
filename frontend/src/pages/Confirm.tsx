@@ -17,7 +17,10 @@ function normalizePhone(value: string) {
 
 function isValidName(value: string) {
   const trimmed = value.trim();
-  return trimmed.length >= 2 && trimmed.length <= 40;
+  if (trimmed.length < 2 || trimmed.length > 40) return false;
+
+  const hasLetter = /[A-Za-zА-Яа-яЁёӘәҒғҚқҢңӨөҰұҮүІі]/.test(trimmed);
+  return hasLetter;
 }
 
 function isValidPhone(value: string) {
@@ -74,7 +77,7 @@ export default function Confirm() {
     }
 
     if (!isValidName(name)) {
-      setError("Имя должно быть от 2 до 40 символов");
+      setError("Введите корректное имя");
       return;
     }
 
