@@ -596,16 +596,26 @@ def activate_master(payload: MasterActivateRequest):
 
 # --- Slots ---
 @app.get("/slots/free")
-def free_slots(master_id: int, day: str):
+def free_slots(master_id: int, day: str, service_id: int | None = None):
     validated_day = validate_day_string(day)
     all_times = generate_times("10:00", "20:00", 30)
+
+    duration = 30
+    if service_id:
+        service = get_service_by_id(service_id)
+        if service:
+            duration = service["duration_min"] or 30
+
+    slots_needed = max(1, duration // 30)
 
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute(
             """
             select time
             from bookings
-            where master_id = %s and day = %s and status not in ('rejected', 'cancelled')
+            where master_id = %s
+              and day = %s
+              and status not in ('rejected', 'cancelled')
             """,
             (master_id, validated_day),
         )
@@ -615,21 +625,40 @@ def free_slots(master_id: int, day: str):
             """
             select time
             from blocked_slots
-            where master_id = %s and day = %s
+            where master_id = %s
+              and day = %s
             """,
             (master_id, validated_day),
         )
         blocked_times = {row["time"] for row in cur.fetchall()}
 
     busy = booked_times | blocked_times
-    free = [t for t in all_times if t not in busy]
+
+    free = []
+    for i in range(len(all_times)):
+        window = all_times[i:i + slots_needed]
+
+        if len(window) < slots_needed:
+            continue
+
+        ok = True
+        for t in window:
+            if t in busy:
+                ok = False
+                break
+
+        if ok:
+            free.append(all_times[i])
+
     return {
         "master_id": master_id,
         "day": validated_day,
+        "service_id": service_id,
+        "duration_min": duration,
+        "slots_needed": slots_needed,
         "free": free,
         "busy": sorted(list(busy)),
     }
-
 
 @app.post("/slots/block", response_model=BlockSlot)
 def block_slot(master_id: int, day: str, time: str):

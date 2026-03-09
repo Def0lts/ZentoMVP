@@ -67,10 +67,9 @@ export default function Booking() {
   const [free, setFree] = useState<string[]>([]);
   const [busy, setBusy] = useState<string[]>([]);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-
   async function load() {
     const res = await fetch(
-      `${API_BASE}/slots/free?master_id=${masterId}&day=${day}`,
+      `${API_BASE}/slots/free?master_id=${masterId}&day=${day}&service_id=${serviceId}`,
     );
     const data = await res.json();
 
