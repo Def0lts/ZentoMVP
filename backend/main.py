@@ -804,28 +804,6 @@ def add_favorite(payload: FavoriteCreate):
         row = cur.fetchone()
         conn.commit()
 
-        # уведомление клиенту
-        client_telegram_id = row["telegram_id"]
-
-        if client_telegram_id:
-            if new_status == "confirmed":
-                text = (
-                    "✅ Ваша запись подтверждена!\n\n"
-                    f"Мастер: {row['master_name']}\n"
-                    f"Дата: {row['day']}\n"
-                    f"Время: {row['time']}\n\n"
-                    "Ждём вас в салоне!"
-                )
-            else:
-                text = (
-                    "❌ Ваша запись была отклонена.\n\n"
-                    f"Мастер: {row['master_name']}\n"
-                    f"Дата: {row['day']}\n"
-                    f"Время: {row['time']}\n\n"
-                    "Попробуйте выбрать другое время."
-                )
-
-            send_telegram_message(client_telegram_id, text)
 
     return {"ok": True, "added": bool(row)}
 
@@ -900,6 +878,29 @@ async def telegram_webhook(update: dict):
         )
         row = cur.fetchone()
         conn.commit()
+
+        # уведомление клиенту
+        client_telegram_id = row["telegram_id"]
+
+        if client_telegram_id:
+            if new_status == "confirmed":
+                text = (
+                    "✅ Ваша запись подтверждена!\n\n"
+                    f"Мастер: {row['master_name']}\n"
+                    f"Дата: {row['day']}\n"
+                    f"Время: {row['time']}\n\n"
+                    "Ждём вас в салоне!"
+                )
+            else:
+                text = (
+                    "❌ Ваша запись была отклонена.\n\n"
+                    f"Мастер: {row['master_name']}\n"
+                    f"Дата: {row['day']}\n"
+                    f"Время: {row['time']}\n\n"
+                    "Попробуйте выбрать другое время."
+                )
+
+            send_telegram_message(client_telegram_id, text)
 
     if not row:
         answer_callback_query(callback_id, "Запись не найдена")
