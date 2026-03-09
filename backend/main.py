@@ -742,8 +742,47 @@ def bookings_by_user(telegram_id: int):
 def update_booking_status(
     booking_id: int,
     status: Literal["confirmed", "rejected", "arrived", "no_show", "cancelled"],
+    telegram_id: int,
 ):
+
     with get_conn() as conn, conn.cursor() as cur:
+
+        cur.execute(
+            """
+            select telegram_id, master_id
+            from bookings
+            where id = %s
+            """,
+            (booking_id,),
+        )
+        booking = cur.fetchone()
+
+        if not booking:
+            raise HTTPException(status_code=404, detail="booking_not_found")
+
+        booking_owner = booking["telegram_id"]
+        master_id = booking["master_id"]
+
+        # клиент может только отменять свою запись
+        if status == "cancelled":
+            if telegram_id != booking_owner:
+                raise HTTPException(status_code=403, detail="not_booking_owner")
+
+        else:
+            # остальные статусы только мастер
+            cur.execute(
+                """
+                select telegram_id
+                from master_access
+                where master_id = %s
+                """,
+                (master_id,),
+            )
+            row = cur.fetchone()
+
+            if not row or row["telegram_id"] != telegram_id:
+                raise HTTPException(status_code=403, detail="not_master")
+
         cur.execute(
             """
             update bookings
@@ -754,11 +793,9 @@ def update_booking_status(
             """,
             (status, booking_id),
         )
+
         row = cur.fetchone()
         conn.commit()
-
-    if not row:
-        raise HTTPException(status_code=404, detail="not_found")
 
     return row
 
