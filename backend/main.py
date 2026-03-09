@@ -149,6 +149,16 @@ class FavoriteCreate(BaseModel):
     init_data: Optional[str] = None
 
 
+class Service(BaseModel):
+    id: int
+    salon_id: int
+    title: str
+    price: int
+    duration_min: int
+    category: Optional[str] = None
+    is_active: bool
+
+
 class MasterActivateRequest(BaseModel):
     telegram_id: int
     init_data: Optional[str] = None
@@ -447,6 +457,39 @@ def get_salon_masters(salon_id: int):
             order by id
             """,
             (salon_id,),
+        )
+        rows = cur.fetchall()
+    return rows
+
+@app.get("/salons/{salon_id}/services", response_model=List[Service])
+def get_salon_services(salon_id: int):
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            select id, salon_id, title, price, duration_min, category, is_active
+            from services
+            where salon_id = %s and is_active = true
+            order by id
+            """,
+            (salon_id,),
+        )
+        rows = cur.fetchall()
+    return rows
+
+
+@app.get("/masters/{master_id}/services", response_model=List[Service])
+def get_master_services(master_id: int):
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            select s.id, s.salon_id, s.title, s.price, s.duration_min, s.category, s.is_active
+            from master_services ms
+            join services s on s.id = ms.service_id
+            where ms.master_id = %s
+              and s.is_active = true
+            order by s.id
+            """,
+            (master_id,),
         )
         rows = cur.fetchall()
     return rows
