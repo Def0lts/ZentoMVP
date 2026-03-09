@@ -1,34 +1,71 @@
-import { useMemo, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { createBooking } from "../lib/api";
-import { getTelegramId, getTelegramInitData } from "../lib/telegram";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { createBooking, getMastersBySalon } from "../lib/api";
+import {
+  getTelegramId,
+  getTelegramInitData,
+  isTelegramWebApp,
+} from "../lib/telegram";
+
+function normalizeName(value: string) {
+  return value.replace(/\s+/g, " ").trimStart();
+}
+
+function normalizePhone(value: string) {
+  return value.replace(/[^\d+()\-\s]/g, "").slice(0, 20);
+}
+
+function isValidName(value: string) {
+  const trimmed = value.trim();
+  return trimmed.length >= 2 && trimmed.length <= 40;
+}
+
+function isValidPhone(value: string) {
+  const digits = value.replace(/\D/g, "");
+  return digits.length >= 7 && value.trim().length <= 20;
+}
 
 export default function Confirm() {
   const nav = useNavigate();
   const loc = useLocation();
-
   const qp = useMemo(() => new URLSearchParams(loc.search), [loc.search]);
 
   const salonId = Number(qp.get("salonId") || 0);
   const masterId = Number(qp.get("masterId") || 0);
-  const masterName = qp.get("masterName") || "";
+  const day = qp.get("day") || "";
+  const time = qp.get("time") || "";
 
   const serviceId = Number(qp.get("serviceId") || 0);
   const serviceTitle = qp.get("serviceTitle") || "";
   const servicePrice = Number(qp.get("servicePrice") || 0);
   const serviceDuration = Number(qp.get("serviceDuration") || 0);
 
-  const day = qp.get("day") || "";
-  const time = qp.get("time") || "";
+  const masterNameFromQuery = qp.get("masterName") ?? "";
+  const [masterName, setMasterName] = useState(masterNameFromQuery);
 
-  const telegramId = getTelegramId(1111);
-  const initData = getTelegramInitData();
+  useEffect(() => {
+    if (!salonId || !masterId) return;
+    if (masterName && masterName !== "Мастер") return;
+
+    (async () => {
+      try {
+        const masters = await getMastersBySalon(salonId);
+        const found = masters.find((m) => m.id === masterId);
+        if (found?.name) setMasterName(found.name);
+      } catch {
+        // ignore
+      }
+    })();
+  }, [salonId, masterId, masterName]);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+
+  const telegramId = getTelegramId();
+  const initData = getTelegramInitData();
+  const isTg = isTelegramWebApp();
 
   async function onSubmit() {
     if (!salonId || !masterId || !serviceId || !day || !time) {
@@ -36,8 +73,23 @@ export default function Confirm() {
       return;
     }
 
+    if (!isValidName(name)) {
+      setError("Имя должно быть от 2 до 40 символов");
+      return;
+    }
+
+    if (!isValidPhone(phone)) {
+      setError("Введите корректный телефон");
+      return;
+    }
+
+    if (isTg && !initData) {
+      setError("Не удалось получить данные Telegram");
+      return;
+    }
+
     try {
-      setLoading(true);
+      setSaving(true);
       setError(null);
 
       const booking = await createBooking({
@@ -45,18 +97,18 @@ export default function Confirm() {
         init_data: initData,
         salon_id: salonId,
         master_id: masterId,
-        master_name: masterName,
+        master_name: masterName || "Мастер",
         day,
         time,
-        customer_name: name,
-        customer_phone: phone,
+        customer_name: name.trim(),
+        customer_phone: phone.trim(),
       });
 
-      nav(`/success?id=${booking.id}`);
+      nav("/success", { state: { bookingId: booking.id } });
     } catch {
-      setError("Ошибка записи");
+      setError("Ошибка создания записи");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   }
 
@@ -64,55 +116,79 @@ export default function Confirm() {
     <div className="zento-screen">
       <div className="zento-phone">
         <div className="topbar">
-          <button className="pill" onClick={() => nav(-1)}>
+          <button
+            className="pill"
+            onClick={() => nav(-1)}
+            style={{ cursor: "pointer" }}
+          >
             ←
           </button>
           <div style={{ fontWeight: 900 }}>Подтверждение</div>
           <div style={{ width: 44 }} />
         </div>
 
-        <div className="notice">
-          <div>
-            Мастер: <b>{masterName}</b>
+        <div className="page-title">Подтвердите запись</div>
+
+        <div className="slot-box">
+          <div style={{ fontWeight: 900, fontSize: 13 }}>Детали записи</div>
+
+          <div className="notice" style={{ marginTop: 6 }}>
+            Мастер: <b>{masterName || "Загрузка..."}</b>
           </div>
 
-          <div>
-            Услуга: <b>{serviceTitle}</b>
+          <div className="notice">
+            Услуга: <b>{serviceTitle || "—"}</b>
           </div>
 
-          <div>
-            Цена: <b>{servicePrice} ₸</b>
+          <div className="notice">
+            Цена: <b>{servicePrice > 0 ? `${servicePrice} ₸` : "—"}</b>
           </div>
 
-          <div>
-            Длительность: <b>{serviceDuration} мин</b>
+          <div className="notice">
+            Длительность:{" "}
+            <b>{serviceDuration > 0 ? `${serviceDuration} мин` : "—"}</b>
           </div>
 
-          <div>
-            Дата: <b>{day}</b>
+          <div className="notice">
+            Дата: <b>{day || "—"}</b>
           </div>
 
-          <div>
-            Время: <b>{time}</b>
+          <div className="notice">
+            Время: <b>{time || "—"}</b>
           </div>
+
+          <div className="form">
+            <input
+              className="input"
+              placeholder="Имя"
+              value={name}
+              maxLength={40}
+              onChange={(e) => setName(normalizeName(e.target.value))}
+            />
+
+            <input
+              className="input"
+              placeholder="Телефон"
+              inputMode="tel"
+              value={phone}
+              maxLength={20}
+              onChange={(e) => setPhone(normalizePhone(e.target.value))}
+            />
+          </div>
+
+          <div className="notice">
+            Запись бесплатная. Оплата производится в салоне.
+          </div>
+
+          {error && (
+            <div style={{ marginTop: 10, color: "crimson", fontWeight: 700 }}>
+              {error}
+            </div>
+          )}
         </div>
 
-        <input
-          placeholder="Ваше имя"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-
-        <input
-          placeholder="Телефон"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
-
-        {error && <div style={{ color: "red" }}>{error}</div>}
-
-        <button className="big-primary" onClick={onSubmit} disabled={loading}>
-          Подтвердить запись
+        <button className="big-primary" onClick={onSubmit} disabled={saving}>
+          {saving ? "Создаю..." : "Подтвердить запись"}
         </button>
       </div>
     </div>

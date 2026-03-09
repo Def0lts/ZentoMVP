@@ -17,7 +17,7 @@ from db import get_conn
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 app = FastAPI(title="Zento API")
-
+    
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[

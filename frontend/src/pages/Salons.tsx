@@ -229,7 +229,7 @@ export default function Salons() {
                 <div className="salon-actions">
                   <button
                     className="btn-primary"
-                    onClick={() => nav(`/salons/${s.id}`)}
+                    onClick={() => nav(`/salons/${s.id}/masters`)}
                   >
                     Записаться
                   </button>
