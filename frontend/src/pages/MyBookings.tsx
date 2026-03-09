@@ -33,7 +33,7 @@ export default function MyBookings() {
       setLoading(true);
       setError(null);
       const data = await getBookingsByTelegram(telegramId);
-      setItems([...data].reverse());
+      setItems(data);
     } catch {
       setError("Не удалось загрузить записи");
     } finally {
@@ -44,7 +44,7 @@ export default function MyBookings() {
   async function cancelBooking(id: number) {
     try {
       setBusyId(id);
-      const updated = await setBookingStatus(id, "cancelled");
+      const updated = await setBookingStatus(id, "cancelled", telegramId);
       setItems((prev) => prev.map((b) => (b.id === id ? updated : b)));
     } catch {
       setError("Не удалось отменить запись");
@@ -123,10 +123,27 @@ export default function MyBookings() {
                   </div>
                 </div>
 
+                {b.service_title && (
+                  <div className="notice" style={{ marginTop: 6 }}>
+                    Услуга: <b>{b.service_title}</b>
+                  </div>
+                )}
+
                 <div className="salon-meta" style={{ marginTop: 6 }}>
                   <span>📅 {b.day}</span>
                   <span>🕒 {b.time}</span>
                 </div>
+
+                {(b.service_price || b.service_duration) && (
+                  <div className="salon-meta" style={{ marginTop: 6 }}>
+                    {b.service_price ? (
+                      <span>💸 {b.service_price} ₸</span>
+                    ) : null}
+                    {b.service_duration ? (
+                      <span>⏱ {b.service_duration} мин</span>
+                    ) : null}
+                  </div>
+                )}
 
                 <div style={{ marginTop: 8, fontSize: 12 }}>
                   Статус: <b>{statusLabel(b.status)}</b>

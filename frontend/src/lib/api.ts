@@ -127,11 +127,15 @@ export async function getBookingsByTelegram(telegramId: number): Promise<Booking
 
 export async function setBookingStatus(
   bookingId: number,
-  status: "confirmed" | "rejected" | "arrived" | "no_show" | "cancelled"
+  status: "confirmed" | "rejected" | "arrived" | "no_show" | "cancelled",
+  telegramId: number,
 ): Promise<Booking> {
-  const res = await fetch(`${API_BASE}/bookings/${bookingId}/status?status=${status}`, {
-    method: "PATCH",
-  });
+  const res = await fetch(
+    `${API_BASE}/bookings/${bookingId}/status?status=${status}&telegram_id=${telegramId}`,
+    {
+      method: "PATCH",
+    }
+  );
   if (!res.ok) throw new Error("Failed to update status");
   return res.json();
 }

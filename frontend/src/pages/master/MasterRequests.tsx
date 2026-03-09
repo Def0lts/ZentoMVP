@@ -77,7 +77,7 @@ export default function MasterRequests() {
   ) {
     try {
       setBusyId(id);
-      const updated = await setBookingStatus(id, status);
+      const updated = await setBookingStatus(id, status, telegramId);
       setItems((prev) => prev.map((b) => (b.id === id ? updated : b)));
     } finally {
       setBusyId(null);
@@ -195,6 +195,12 @@ export default function MasterRequests() {
                   </div>
                 </div>
 
+                {b.service_title && (
+                  <div className="notice" style={{ marginTop: 6 }}>
+                    Услуга: <b>{b.service_title}</b>
+                  </div>
+                )}
+
                 <div className="salon-meta" style={{ marginTop: 6 }}>
                   <span>📞 {b.customer_phone}</span>
                 </div>
@@ -203,6 +209,17 @@ export default function MasterRequests() {
                   <span>📅 {b.day}</span>
                   <span>🕒 {b.time}</span>
                 </div>
+
+                {(b.service_price || b.service_duration) && (
+                  <div className="salon-meta" style={{ marginTop: 6 }}>
+                    {b.service_price ? (
+                      <span>💸 {b.service_price} ₸</span>
+                    ) : null}
+                    {b.service_duration ? (
+                      <span>⏱ {b.service_duration} мин</span>
+                    ) : null}
+                  </div>
+                )}
 
                 {b.status === "pending" && (
                   <div className="master-actions">
