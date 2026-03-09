@@ -32,16 +32,65 @@ app.add_middleware(
 
 # --- Mock data ---
 SALONS = [
-    {"id": 1, "name": "Beuty_salon", "address": "Костанай, Абая 10", "price_from": 3000, "rating": 4.8, "km": 1.2, "category": "hair"},
-    {"id": 2, "name": "Svetlana", "address": "Костанай, Аль-Фараби 22", "price_from": 2500, "rating": 4.6, "km": 0.7, "category": "nails"},
+    {
+        "id": 1,
+        "name": "Beuty_salon",
+        "address": "Костанай, Абая 10",
+        "price_from": 3000,
+        "rating": 4.8,
+        "km": 1.2,
+        "category": "hair",
+    },
+    {
+        "id": 2,
+        "name": "Svetlana",
+        "address": "Костанай, Аль-Фараби 22",
+        "price_from": 2500,
+        "rating": 4.6,
+        "km": 0.7,
+        "category": "nails",
+    },
 ]
 
 MASTERS = [
-    {"id": 101, "salon_id": 1, "name": "Мария", "role": "Парикмахер-универсал", "rating": 4.9, "reviews": 15, "telegram_id": 111111111},
-    {"id": 102, "salon_id": 1, "name": "Оксана", "role": "Парикмахер-универсал", "rating": 4.7, "reviews": 87, "telegram_id": 1346025315},
-    {"id": 103, "salon_id": 1, "name": "Елена", "role": "Парикмахер-универсал", "rating": 4.8, "reviews": 35, "telegram_id": 333333333},
-    {"id": 201, "salon_id": 2, "name": "Светлана", "role": "Мастер ногтей", "rating": 4.6, "reviews": 24, "telegram_id": 444444444},
+    {
+        "id": 101,
+        "salon_id": 1,
+        "name": "Мария",
+        "role": "Парикмахер-универсал",
+        "rating": 4.9,
+        "reviews": 15,
+        "telegram_id": 111111111,
+    },
+    {
+        "id": 102,
+        "salon_id": 1,
+        "name": "Оксана",
+        "role": "Парикмахер-универсал",
+        "rating": 4.7,
+        "reviews": 87,
+        "telegram_id": 1346025315,
+    },
+    {
+        "id": 103,
+        "salon_id": 1,
+        "name": "Елена",
+        "role": "Парикмахер-универсал",
+        "rating": 4.8,
+        "reviews": 35,
+        "telegram_id": 333333333,
+    },
+    {
+        "id": 201,
+        "salon_id": 2,
+        "name": "Светлана",
+        "role": "Мастер ногтей",
+        "rating": 4.6,
+        "reviews": 24,
+        "telegram_id": 444444444,
+    },
 ]
+
 
 def generate_times(start="10:00", end="20:00", step_min=30):
     t0 = datetime.strptime(start, "%H:%M")
@@ -52,6 +101,7 @@ def generate_times(start="10:00", end="20:00", step_min=30):
         out.append(cur.strftime("%H:%M"))
         cur += timedelta(minutes=step_min)
     return out
+
 
 # --- Models ---
 class BookingCreate(BaseModel):
@@ -65,6 +115,7 @@ class BookingCreate(BaseModel):
     customer_name: str
     customer_phone: str
 
+
 class Booking(BaseModel):
     id: int
     telegram_id: int
@@ -75,13 +126,22 @@ class Booking(BaseModel):
     time: str
     customer_name: str
     customer_phone: str
-    status: Literal["pending", "confirmed", "rejected", "arrived", "no_show", "cancelled"]
+    status: Literal[
+        "pending",
+        "confirmed",
+        "rejected",
+        "arrived",
+        "no_show",
+        "cancelled",
+    ]
+
 
 class BlockSlot(BaseModel):
     id: int
     master_id: int
     day: str
     time: str
+
 
 class FavoriteCreate(BaseModel):
     telegram_id: int
@@ -94,6 +154,7 @@ class MasterActivateRequest(BaseModel):
     init_data: Optional[str] = None
     code: str
 
+
 def validate_telegram_init_data(init_data: str) -> dict | None:
     if not init_data or not BOT_TOKEN:
         return None
@@ -104,8 +165,16 @@ def validate_telegram_init_data(init_data: str) -> dict | None:
         return None
 
     data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
-    secret_key = hmac.new(b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256).digest()
-    calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+    secret_key = hmac.new(
+        b"WebAppData",
+        BOT_TOKEN.encode(),
+        hashlib.sha256,
+    ).digest()
+    calculated_hash = hmac.new(
+        secret_key,
+        data_check_string.encode(),
+        hashlib.sha256,
+    ).hexdigest()
 
     if calculated_hash != received_hash:
         return None
@@ -120,10 +189,25 @@ def validate_telegram_init_data(init_data: str) -> dict | None:
     except Exception:
         return None
 
+
 def get_master_from_list(master_id: int):
     for m in MASTERS:
         if m["id"] == master_id:
             return m
+    return None
+
+
+def get_master_by_id(master_id: int):
+    for m in MASTERS:
+        if m["id"] == master_id:
+            return m
+    return None
+
+
+def get_salon_by_id(salon_id: int):
+    for s in SALONS:
+        if s["id"] == salon_id:
+            return s
     return None
 
 
@@ -155,13 +239,7 @@ def build_master_response(master: dict, telegram_id: Optional[int]):
         "reviews": master["reviews"],
         "telegram_id": telegram_id,
         "is_activated": telegram_id is not None,
-    } 
-
-def get_master_by_id(master_id: int):
-    for m in MASTERS:
-        if m["id"] == master_id:
-            return m
-    return None
+    }
 
 
 def send_telegram_message(chat_id: int, text: str, reply_markup: dict | None = None):
@@ -217,15 +295,115 @@ def edit_telegram_message(chat_id: int, message_id: int, text: str):
     except Exception:
         return None
 
+
+# --- Validation helpers ---
+def normalize_spaces(value: str) -> str:
+    return " ".join((value or "").split())
+
+
+def validate_day_string(day: str) -> str:
+    value = (day or "").strip()
+    try:
+        parsed = datetime.strptime(value, "%Y-%m-%d")
+        return parsed.strftime("%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(status_code=422, detail="invalid_day_format")
+
+
+def validate_time_string(time_value: str) -> str:
+    value = (time_value or "").strip()
+    try:
+        parsed = datetime.strptime(value, "%H:%M")
+        return parsed.strftime("%H:%M")
+    except ValueError:
+        raise HTTPException(status_code=422, detail="invalid_time_format")
+
+
+def validate_customer_name(name: str) -> str:
+    value = normalize_spaces(name)
+
+    if len(value) < 2 or len(value) > 40:
+        raise HTTPException(status_code=422, detail="invalid_customer_name")
+
+    return value
+
+
+def validate_customer_phone(phone: str) -> str:
+    value = (phone or "").strip()
+    digits = "".join(ch for ch in value if ch.isdigit())
+
+    if len(value) > 20 or len(digits) < 7:
+        raise HTTPException(status_code=422, detail="invalid_customer_phone")
+
+    allowed = set("0123456789+()- ")
+    if any(ch not in allowed for ch in value):
+        raise HTTPException(status_code=422, detail="invalid_customer_phone")
+
+    return value
+
+
+def lock_slot(cur, master_id: int, day: str, time_value: str):
+    lock_key = f"slot:{master_id}:{day}:{time_value}"
+    cur.execute("select pg_advisory_xact_lock(hashtext(%s))", (lock_key,))
+
+
+def ensure_salon_and_master(salon_id: int, master_id: int):
+    salon = get_salon_by_id(salon_id)
+    if not salon:
+        raise HTTPException(status_code=404, detail="salon_not_found")
+
+    master = get_master_by_id(master_id)
+    if not master:
+        raise HTTPException(status_code=404, detail="master_not_found")
+
+    if master["salon_id"] != salon_id:
+        raise HTTPException(status_code=409, detail="master_not_in_salon")
+
+    return salon, master
+
+
+def slot_has_active_booking(cur, master_id: int, day: str, time_value: str) -> bool:
+    cur.execute(
+        """
+        select 1
+        from bookings
+        where master_id = %s
+          and day = %s
+          and time = %s
+          and status not in ('rejected', 'cancelled')
+        limit 1
+        """,
+        (master_id, day, time_value),
+    )
+    return cur.fetchone() is not None
+
+
+def slot_is_blocked(cur, master_id: int, day: str, time_value: str) -> bool:
+    cur.execute(
+        """
+        select 1
+        from blocked_slots
+        where master_id = %s
+          and day = %s
+          and time = %s
+        limit 1
+        """,
+        (master_id, day, time_value),
+    )
+    return cur.fetchone() is not None
+
+
 # --- Health ---
 @app.get("/")
 def root():
     return {"message": "Zento API works"}
 
+
 # --- Salons / masters ---
 @app.get("/salons")
 def get_salons():
     return SALONS
+
 
 @app.get("/salons/{salon_id}")
 def get_salon(salon_id: int):
@@ -234,11 +412,10 @@ def get_salon(salon_id: int):
             return s
     return {"error": "not_found"}
 
+
 @app.get("/salons/{salon_id}/masters")
 def get_salon_masters(salon_id: int):
     return [m for m in MASTERS if m["salon_id"] == salon_id]
-
-
 
 
 @app.get("/master/by-telegram/{telegram_id}")
@@ -276,7 +453,6 @@ def activate_master(payload: MasterActivateRequest):
             raise HTTPException(status_code=403, detail="telegram_id_mismatch")
 
     with get_conn() as conn, conn.cursor() as cur:
-        # найдём мастера по коду
         cur.execute(
             """
             select master_id, telegram_id
@@ -290,11 +466,9 @@ def activate_master(payload: MasterActivateRequest):
         if not row:
             raise HTTPException(status_code=404, detail="invalid_activation_code")
 
-        # если мастер уже привязан к другому tg id
         if row["telegram_id"] is not None and row["telegram_id"] != payload.telegram_id:
             raise HTTPException(status_code=409, detail="master_already_activated")
 
-        # если этот tg id уже привязан к другому мастеру
         cur.execute(
             """
             select master_id
@@ -305,7 +479,10 @@ def activate_master(payload: MasterActivateRequest):
         )
         exists_other = cur.fetchone()
         if exists_other:
-            raise HTTPException(status_code=409, detail="telegram_already_bound_to_other_master")
+            raise HTTPException(
+                status_code=409,
+                detail="telegram_already_bound_to_other_master",
+            )
 
         cur.execute(
             """
@@ -326,9 +503,11 @@ def activate_master(payload: MasterActivateRequest):
 
     return build_master_response(master, updated["telegram_id"])
 
+
 # --- Slots ---
 @app.get("/slots/free")
 def free_slots(master_id: int, day: str):
+    validated_day = validate_day_string(day)
     all_times = generate_times("10:00", "20:00", 30)
 
     with get_conn() as conn, conn.cursor() as cur:
@@ -338,7 +517,7 @@ def free_slots(master_id: int, day: str):
             from bookings
             where master_id = %s and day = %s and status not in ('rejected', 'cancelled')
             """,
-            (master_id, day),
+            (master_id, validated_day),
         )
         booked_times = {row["time"] for row in cur.fetchall()}
 
@@ -348,33 +527,58 @@ def free_slots(master_id: int, day: str):
             from blocked_slots
             where master_id = %s and day = %s
             """,
-            (master_id, day),
+            (master_id, validated_day),
         )
         blocked_times = {row["time"] for row in cur.fetchall()}
 
     busy = booked_times | blocked_times
     free = [t for t in all_times if t not in busy]
-    return {"master_id": master_id, "day": day, "free": free, "busy": sorted(list(busy))}
+    return {
+        "master_id": master_id,
+        "day": validated_day,
+        "free": free,
+        "busy": sorted(list(busy)),
+    }
+
 
 @app.post("/slots/block", response_model=BlockSlot)
 def block_slot(master_id: int, day: str, time: str):
+    validated_day = validate_day_string(day)
+    validated_time = validate_time_string(time)
+
+    master = get_master_by_id(master_id)
+    if not master:
+        raise HTTPException(status_code=404, detail="master_not_found")
+
     with get_conn() as conn, conn.cursor() as cur:
+        lock_slot(cur, master_id, validated_day, validated_time)
+
+        if slot_has_active_booking(cur, master_id, validated_day, validated_time):
+            raise HTTPException(status_code=409, detail="slot_already_booked")
+
+        if slot_is_blocked(cur, master_id, validated_day, validated_time):
+            raise HTTPException(status_code=409, detail="slot_already_blocked")
+
         cur.execute(
             """
             insert into blocked_slots (master_id, day, time)
             values (%s, %s, %s)
             returning id, master_id, day, time
             """,
-            (master_id, day, time),
+            (master_id, validated_day, validated_time),
         )
         row = cur.fetchone()
         conn.commit()
+
     return row
+
 
 @app.get("/slots/blocked", response_model=List[BlockSlot])
 def get_blocked(master_id: int, day: Optional[str] = None):
+    validated_day = validate_day_string(day) if day else None
+
     with get_conn() as conn, conn.cursor() as cur:
-        if day:
+        if validated_day:
             cur.execute(
                 """
                 select id, master_id, day, time
@@ -382,7 +586,7 @@ def get_blocked(master_id: int, day: Optional[str] = None):
                 where master_id = %s and day = %s
                 order by time
                 """,
-                (master_id, day),
+                (master_id, validated_day),
             )
         else:
             cur.execute(
@@ -397,24 +601,28 @@ def get_blocked(master_id: int, day: Optional[str] = None):
         items = cur.fetchall()
     return items
 
+
 @app.post("/slots/unblock")
 def unblock_slot(master_id: int, day: str, time: str):
+    validated_day = validate_day_string(day)
+    validated_time = validate_time_string(time)
+
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute(
             """
             delete from blocked_slots
             where master_id = %s and day = %s and time = %s
             """,
-            (master_id, day, time),
+            (master_id, validated_day, validated_time),
         )
         removed = cur.rowcount
         conn.commit()
     return {"ok": True, "removed": removed}
 
+
 # --- Bookings ---
 @app.post("/bookings", response_model=Booking)
 def create_booking(payload: BookingCreate):
-    # Если пришли из Telegram Mini App — проверяем подпись
     if payload.init_data:
         user = validate_telegram_init_data(payload.init_data)
         if not user:
@@ -424,7 +632,23 @@ def create_booking(payload: BookingCreate):
         if user_id != payload.telegram_id:
             raise HTTPException(status_code=403, detail="telegram_id_mismatch")
 
+    validated_day = validate_day_string(payload.day)
+    validated_time = validate_time_string(payload.time)
+    validated_name = validate_customer_name(payload.customer_name)
+    validated_phone = validate_customer_phone(payload.customer_phone)
+
+    _, master = ensure_salon_and_master(payload.salon_id, payload.master_id)
+    real_master_name = master["name"]
+
     with get_conn() as conn, conn.cursor() as cur:
+        lock_slot(cur, payload.master_id, validated_day, validated_time)
+
+        if slot_is_blocked(cur, payload.master_id, validated_day, validated_time):
+            raise HTTPException(status_code=409, detail="slot_blocked")
+
+        if slot_has_active_booking(cur, payload.master_id, validated_day, validated_time):
+            raise HTTPException(status_code=409, detail="slot_already_booked")
+
         cur.execute(
             """
             insert into bookings (
@@ -439,39 +663,46 @@ def create_booking(payload: BookingCreate):
                 payload.telegram_id,
                 payload.salon_id,
                 payload.master_id,
-                payload.master_name,
-                payload.day,
-                payload.time,
-                payload.customer_name,
-                payload.customer_phone,
+                real_master_name,
+                validated_day,
+                validated_time,
+                validated_name,
+                validated_phone,
             ),
         )
         row = cur.fetchone()
         conn.commit()
+
     master_telegram_id = get_bound_master_telegram_id(payload.master_id)
     if master_telegram_id:
         text = (
             f"🔔 Новая запись\n\n"
-            f"Клиент: {payload.customer_name}\n"
-            f"Телефон: {payload.customer_phone}\n\n"
-            f"Дата: {payload.day}\n"
-            f"Время: {payload.time}\n"
-            f"Мастер: {payload.master_name}"
+            f"Клиент: {validated_name}\n"
+            f"Телефон: {validated_phone}\n\n"
+            f"Дата: {validated_day}\n"
+            f"Время: {validated_time}\n"
+            f"Мастер: {real_master_name}"
         )
 
         reply_markup = {
             "inline_keyboard": [
                 [
-                    {"text": "✅ Подтвердить", "callback_data": f"booking:confirm:{row['id']}"},
-                    {"text": "❌ Отклонить", "callback_data": f"booking:reject:{row['id']}"},
+                    {
+                        "text": "✅ Подтвердить",
+                        "callback_data": f"booking:confirm:{row['id']}",
+                    },
+                    {
+                        "text": "❌ Отклонить",
+                        "callback_data": f"booking:reject:{row['id']}",
+                    },
                 ]
             ]
         }
 
         send_telegram_message(master_telegram_id, text, reply_markup)
-    
 
     return row
+
 
 @app.get("/bookings/by-master/{master_id}", response_model=List[Booking])
 def bookings_by_master(master_id: int):
@@ -489,6 +720,7 @@ def bookings_by_master(master_id: int):
         rows = cur.fetchall()
     return rows
 
+
 @app.get("/bookings/by-telegram/{telegram_id}", response_model=List[Booking])
 def bookings_by_user(telegram_id: int):
     with get_conn() as conn, conn.cursor() as cur:
@@ -505,10 +737,11 @@ def bookings_by_user(telegram_id: int):
         rows = cur.fetchall()
     return rows
 
+
 @app.patch("/bookings/{booking_id}/status", response_model=Booking)
 def update_booking_status(
     booking_id: int,
-    status: Literal["confirmed", "rejected", "arrived", "no_show", "cancelled"]
+    status: Literal["confirmed", "rejected", "arrived", "no_show", "cancelled"],
 ):
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute(
@@ -528,6 +761,8 @@ def update_booking_status(
         raise HTTPException(status_code=404, detail="not_found")
 
     return row
+
+
 # --- Favorites ---
 @app.get("/favorites/{telegram_id}")
 def get_favorites(telegram_id: int):
