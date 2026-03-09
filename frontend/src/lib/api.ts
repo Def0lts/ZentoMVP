@@ -52,6 +52,16 @@ export type BlockedSlot = {
   time: string;
 };
 
+export type Service = {
+  id: number;
+  salon_id: number;
+  title: string;
+  price: number;
+  duration_min: number;
+  category?: string | null;
+  is_active: boolean;
+};
+
 // ---------- Salons ----------
 export async function getSalons(): Promise<Salon[]> {
   const res = await fetch(`${API_BASE}/salons`);
@@ -62,6 +72,19 @@ export async function getSalons(): Promise<Salon[]> {
 export async function getSalon(id: number): Promise<Salon> {
   const res = await fetch(`${API_BASE}/salons/${id}`);
   if (!res.ok) throw new Error("Salon not found");
+  return res.json();
+}
+
+
+export async function getSalonServices(salonId: number): Promise<Service[]> {
+  const res = await fetch(`${API_BASE}/salons/${salonId}/services`);
+  if (!res.ok) throw new Error("Failed to load salon services");
+  return res.json();
+}
+
+export async function getMasterServices(masterId: number): Promise<Service[]> {
+  const res = await fetch(`${API_BASE}/masters/${masterId}/services`);
+  if (!res.ok) throw new Error("Failed to load master services");
   return res.json();
 }
 

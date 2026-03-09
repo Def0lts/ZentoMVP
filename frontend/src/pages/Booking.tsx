@@ -17,44 +17,42 @@ export default function Booking() {
   const loc = useLocation();
   const qp = useMemo(() => new URLSearchParams(loc.search), [loc.search]);
 
-  const masterIdFromLink = Number(qp.get("masterId") || 0);
+  const masterId = Number(qp.get("masterId") || 0);
+  const masterName = qp.get("masterName") || "";
 
-  if (!masterIdFromLink) {
+  const serviceId = Number(qp.get("serviceId") || 0);
+  const serviceTitle = qp.get("serviceTitle") || "";
+  const servicePrice = Number(qp.get("servicePrice") || 0);
+  const serviceDuration = Number(qp.get("serviceDuration") || 0);
+
+  if (!masterId || !serviceId) {
     return (
       <div className="zento-screen">
         <div className="zento-phone">
           <div className="topbar">
-            <button
-              className="pill"
-              onClick={() => nav(-1)}
-              style={{ cursor: "pointer" }}
-            >
+            <button className="pill" onClick={() => nav(-1)}>
               ←
             </button>
             <div style={{ fontWeight: 900 }}>Запись</div>
             <div style={{ width: 44 }} />
           </div>
 
-          <div className="card" style={{ padding: 16, borderRadius: 26 }}>
-            <div style={{ fontWeight: 900 }}>Сначала выберите мастера</div>
-            <div className="notice" style={{ marginTop: 6 }}>
-              Для записи нужно выбрать специалиста.
+          <div className="card" style={{ padding: 16 }}>
+            <div style={{ fontWeight: 900 }}>
+              Сначала выберите мастера и услугу
             </div>
+
             <button
               className="big-primary"
               onClick={() => nav(`/salons/${salonId}/masters`)}
             >
-              Выбрать мастера
+              Выбрать
             </button>
           </div>
         </div>
       </div>
     );
   }
-
-  const masterId = masterIdFromLink;
-
-  const masterNameFromLink = qp.get("masterName") || "";
 
   const today = useMemo(() => new Date(), []);
   const tomorrow = useMemo(() => {
@@ -75,22 +73,23 @@ export default function Booking() {
       `${API_BASE}/slots/free?master_id=${masterId}&day=${day}`,
     );
     const data = await res.json();
+
     setFree(data.free);
     setBusy(data.busy);
   }
 
   useEffect(() => {
     load();
-    // сбрасываем выбранный слот при смене дня
     setSelectedTime(null);
   }, [day, masterId]);
 
   function pickTab(next: DayTab) {
     setTab(next);
+
     if (next === "today") setDay(fmtDate(today));
     if (next === "tomorrow") setDay(fmtDate(tomorrow));
+
     if (next === "other") {
-      // пока просто +2 дня, чтобы не ломать MVP
       const d = new Date();
       d.setDate(d.getDate() + 2);
       setDay(fmtDate(d));
@@ -103,7 +102,11 @@ export default function Booking() {
     nav(
       `/confirm?salonId=${salonId}` +
         `&masterId=${masterId}` +
-        `&masterName=${encodeURIComponent(masterNameFromLink)}` +
+        `&masterName=${encodeURIComponent(masterName)}` +
+        `&serviceId=${serviceId}` +
+        `&serviceTitle=${encodeURIComponent(serviceTitle)}` +
+        `&servicePrice=${servicePrice}` +
+        `&serviceDuration=${serviceDuration}` +
         `&day=${day}` +
         `&time=${selectedTime}`,
     );
@@ -113,33 +116,26 @@ export default function Booking() {
     <div className="zento-screen">
       <div className="zento-phone">
         <div className="topbar">
-          <button
-            className="pill"
-            onClick={() => nav(-1)}
-            style={{ cursor: "pointer" }}
-          >
+          <button className="pill" onClick={() => nav(-1)}>
             ←
           </button>
-          <div style={{ fontWeight: 900 }}>Запись</div>
-          <button
-            className="pill"
-            onClick={() => {
-              const mn = masterNameFromLink;
-              const url =
-                `${window.location.origin}/booking/${salonId}` +
-                `?masterId=${masterId}` +
-                (mn ? `&masterName=${encodeURIComponent(mn)}` : "");
-
-              navigator.clipboard.writeText(url);
-              alert("Ссылка на запись скопирована");
-            }}
-            style={{ cursor: "pointer" }}
-          >
-            🔗
-          </button>
+          <div style={{ fontWeight: 900 }}>Выберите дату и время</div>
+          <div style={{ width: 44 }} />
         </div>
 
-        <div className="page-title">Выберите дату и время</div>
+        <div className="notice">
+          <div>
+            Мастер: <b>{masterName}</b>
+          </div>
+
+          <div>
+            Услуга: <b>{serviceTitle}</b> • {servicePrice} ₸
+          </div>
+
+          <div>
+            Длительность: <b>{serviceDuration} мин</b>
+          </div>
+        </div>
 
         <div className="segment">
           <button
@@ -148,12 +144,14 @@ export default function Booking() {
           >
             Сегодня
           </button>
+
           <button
             className={tab === "tomorrow" ? "active" : ""}
             onClick={() => pickTab("tomorrow")}
           >
             Завтра
           </button>
+
           <button
             className={tab === "other" ? "active" : ""}
             onClick={() => pickTab("other")}
@@ -163,20 +161,16 @@ export default function Booking() {
         </div>
 
         <div className="slot-box">
-          <div style={{ fontWeight: 900, fontSize: 13 }}>Свободные окна</div>
-          <div className="notice">
-            День: <b>{day}</b>
-          </div>
-
           <div className="slots">
             {busy.map((t) => (
-              <button key={`busy-${t}`} className="slot disabled" disabled>
+              <button key={t} className="slot disabled">
                 {t}
               </button>
             ))}
+
             {free.map((t) => (
               <button
-                key={`free-${t}`}
+                key={t}
                 className={`slot ${selectedTime === t ? "selected" : ""}`}
                 onClick={() => setSelectedTime(t)}
               >
@@ -193,8 +187,6 @@ export default function Booking() {
         >
           Продолжить
         </button>
-
-        {/* BottomNav здесь НЕ надо — это шаг оформления записи */}
       </div>
     </div>
   );

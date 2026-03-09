@@ -102,19 +102,21 @@ export default function ChooseMaster() {
                   </div>
 
                   <div className="salon-actions">
-                    <button
-                      className="btn-primary"
-                      onClick={() => nav(`/booking/${sid}?${qs}`)}
-                    >
-                      Выбрать
-                    </button>
+                    <div className="salon-actions">
+                      <button
+                        className="btn-primary"
+                        onClick={() => nav(`/booking/${sid}/service?${qs}`)}
+                      >
+                        Выбрать
+                      </button>
 
-                    <button
-                      className="btn-ghost"
-                      onClick={() => nav(`/booking/${sid}?${qs}`)}
-                    >
-                      Время
-                    </button>
+                      <button
+                        className="btn-ghost"
+                        onClick={() => nav(`/booking/${sid}/service?${qs}`)}
+                      >
+                        Услуги
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
