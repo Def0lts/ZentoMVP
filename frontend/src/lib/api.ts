@@ -26,6 +26,10 @@ export type Booking = {
   salon_id: number;
   master_id: number;
   master_name: string;
+  service_id?: number | null;
+  service_title?: string | null;
+  service_price?: number | null;
+  service_duration?: number | null;
   day: string;
   time: string;
   customer_name: string;
@@ -39,6 +43,10 @@ export type BookingCreate = {
   salon_id: number;
   master_id: number;
   master_name: string;
+  service_id?: number;
+  service_title?: string;
+  service_price?: number;
+  service_duration?: number;
   day: string;
   time: string;
   customer_name: string;

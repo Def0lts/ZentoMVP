@@ -17,7 +17,7 @@ from db import get_conn
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 app = FastAPI(title="Zento API")
-    
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -110,6 +110,10 @@ class BookingCreate(BaseModel):
     salon_id: int
     master_id: int
     master_name: str
+    service_id: Optional[int] = None
+    service_title: Optional[str] = None
+    service_price: Optional[int] = None
+    service_duration: Optional[int] = None
     day: str
     time: str
     customer_name: str
@@ -122,18 +126,15 @@ class Booking(BaseModel):
     salon_id: int
     master_id: int
     master_name: str
+    service_id: Optional[int] = None
+    service_title: Optional[str] = None
+    service_price: Optional[int] = None
+    service_duration: Optional[int] = None
     day: str
     time: str
     customer_name: str
     customer_phone: str
-    status: Literal[
-        "pending",
-        "confirmed",
-        "rejected",
-        "arrived",
-        "no_show",
-        "cancelled",
-    ]
+    status: Literal["pending", "confirmed", "rejected", "arrived", "no_show", "cancelled"]
 
 
 class BlockSlot(BaseModel):
@@ -234,6 +235,18 @@ def get_salon_by_id(salon_id: int):
         row = cur.fetchone()
     return row
 
+def get_service_by_id(service_id: int):
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            select id, salon_id, title, price, duration_min, category, is_active
+            from services
+            where id = %s
+            """,
+            (service_id,),
+        )
+        row = cur.fetchone()
+    return row
 
 def get_bound_master_telegram_id(master_id: int):
     with get_conn() as conn, conn.cursor() as cur:
@@ -717,6 +730,26 @@ def create_booking(payload: BookingCreate):
     _, master = ensure_salon_and_master(payload.salon_id, payload.master_id)
     real_master_name = master["name"]
 
+    service_row = None
+    service_id = None
+    service_title = None
+    service_price = None
+    service_duration = None
+
+    if payload.service_id:
+        service_row = get_service_by_id(payload.service_id)
+
+        if not service_row:
+            raise HTTPException(status_code=404, detail="service_not_found")
+
+        if service_row["salon_id"] != payload.salon_id:
+            raise HTTPException(status_code=409, detail="service_not_in_salon")
+
+        service_id = service_row["id"]
+        service_title = service_row["title"]
+        service_price = service_row["price"]
+        service_duration = service_row["duration_min"]
+
     with get_conn() as conn, conn.cursor() as cur:
         lock_slot(cur, payload.master_id, validated_day, validated_time)
 
@@ -730,10 +763,12 @@ def create_booking(payload: BookingCreate):
             """
             insert into bookings (
               telegram_id, salon_id, master_id, master_name,
+              service_id, service_title, service_price, service_duration,
               day, time, customer_name, customer_phone, status
             )
-            values (%s, %s, %s, %s, %s, %s, %s, %s, 'pending')
+            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'pending')
             returning id, telegram_id, salon_id, master_id, master_name,
+                      service_id, service_title, service_price, service_duration,
                       day, time, customer_name, customer_phone, status
             """,
             (
@@ -741,6 +776,10 @@ def create_booking(payload: BookingCreate):
                 payload.salon_id,
                 payload.master_id,
                 real_master_name,
+                service_id,
+                service_title,
+                service_price,
+                service_duration,
                 validated_day,
                 validated_time,
                 validated_name,
@@ -756,6 +795,7 @@ def create_booking(payload: BookingCreate):
             f"🔔 Новая запись\n\n"
             f"Клиент: {validated_name}\n"
             f"Телефон: {validated_phone}\n\n"
+            f"Услуга: {service_title or 'Не указана'}\n"
             f"Дата: {validated_day}\n"
             f"Время: {validated_time}\n"
             f"Мастер: {real_master_name}"
@@ -787,7 +827,8 @@ def bookings_by_master(master_id: int):
         cur.execute(
             """
             select id, telegram_id, salon_id, master_id, master_name,
-                   day, time, customer_name, customer_phone, status
+                service_id, service_title, service_price, service_duration,
+                day, time, customer_name, customer_phone, status
             from bookings
             where master_id = %s
             order by id desc
@@ -804,13 +845,15 @@ def bookings_by_user(telegram_id: int):
         cur.execute(
             """
             select id, telegram_id, salon_id, master_id, master_name,
-                   day, time, customer_name, customer_phone, status
+                service_id, service_title, service_price, service_duration,
+                day, time, customer_name, customer_phone, status
             from bookings
             where telegram_id = %s
             order by id desc
             """,
             (telegram_id,),
         )
+
         rows = cur.fetchall()
     return rows
 
@@ -866,7 +909,9 @@ def update_booking_status(
             set status = %s
             where id = %s
             returning id, telegram_id, salon_id, master_id, master_name,
-                      day, time, customer_name, customer_phone, status
+                    service_id, service_title, service_price, service_duration,
+                    day, time, customer_name, customer_phone, status
+
             """,
             (status, booking_id),
         )
