@@ -969,6 +969,32 @@ def update_booking_status(
         row = cur.fetchone()
         conn.commit()
 
+    # уведомление клиенту
+    client_telegram_id = row["telegram_id"]
+
+    if status == "confirmed":
+        text = (
+            f"✅ Ваша запись подтверждена\n\n"
+            f"Мастер: {row['master_name']}\n"
+            f"Услуга: {row.get('service_title') or 'Услуга'}\n"
+            f"Дата: {row['day']}\n"
+            f"Время: {row['time']}"
+        )
+
+        send_telegram_message(client_telegram_id, text)
+
+    elif status == "rejected":
+        text = (
+            f"❌ Запись отклонена\n\n"
+            f"Мастер: {row['master_name']}\n"
+            f"Дата: {row['day']}\n"
+            f"Время: {row['time']}\n\n"
+            f"Попробуйте выбрать другое время."
+        )
+
+        send_telegram_message(client_telegram_id, text)
+
+
     return row
 
 
