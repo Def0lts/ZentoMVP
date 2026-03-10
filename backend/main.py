@@ -970,9 +970,10 @@ def update_booking_status(
         conn.commit()
 
     # уведомление клиенту
+
     client_telegram_id = row["telegram_id"]
 
-    if status == "confirmed":
+    if client_telegram_id and status == "confirmed":
         text = (
             f"✅ Ваша запись подтверждена\n\n"
             f"Мастер: {row['master_name']}\n"
@@ -980,10 +981,9 @@ def update_booking_status(
             f"Дата: {row['day']}\n"
             f"Время: {row['time']}"
         )
-
         send_telegram_message(client_telegram_id, text)
 
-    elif status == "rejected":
+    elif client_telegram_id and status == "rejected":
         text = (
             f"❌ Запись отклонена\n\n"
             f"Мастер: {row['master_name']}\n"
@@ -991,12 +991,98 @@ def update_booking_status(
             f"Время: {row['time']}\n\n"
             f"Попробуйте выбрать другое время."
         )
-
         send_telegram_message(client_telegram_id, text)
 
+   
 
     return row
 
+
+@app.post("/jobs/send-reminders")
+def send_booking_reminders():
+    now = datetime.now()
+
+    sent_24h = 0
+    sent_3h = 0
+
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            select id, telegram_id, master_name, service_title, day, time
+            from bookings
+            where status = 'confirmed'
+              and reminder_24h_sent = false
+            """
+        )
+        items_24h = cur.fetchall()
+
+        for row in items_24h:
+            booking_dt = datetime.strptime(f"{row['day']} {row['time']}", "%Y-%m-%d %H:%M")
+            diff = booking_dt - now
+
+            if timedelta(hours=23, minutes=30) <= diff <= timedelta(hours=24, minutes=30):
+                text = (
+                    f"⏰ Напоминание о записи\n\n"
+                    f"Мастер: {row['master_name']}\n"
+                    f"Услуга: {row.get('service_title') or 'Услуга'}\n"
+                    f"Дата: {row['day']}\n"
+                    f"Время: {row['time']}\n\n"
+                    f"Запись уже завтра."
+                )
+                send_telegram_message(row["telegram_id"], text)
+
+                cur.execute(
+                    """
+                    update bookings
+                    set reminder_24h_sent = true
+                    where id = %s
+                    """,
+                    (row["id"],),
+                )
+                sent_24h += 1
+
+        cur.execute(
+            """
+            select id, telegram_id, master_name, service_title, day, time
+            from bookings
+            where status = 'confirmed'
+              and reminder_3h_sent = false
+            """
+        )
+        items_3h = cur.fetchall()
+
+        for row in items_3h:
+            booking_dt = datetime.strptime(f"{row['day']} {row['time']}", "%Y-%m-%d %H:%M")
+            diff = booking_dt - now
+
+            if timedelta(hours=2, minutes=30) <= diff <= timedelta(hours=3, minutes=30):
+                text = (
+                    f"⏰ Скоро запись\n\n"
+                    f"Мастер: {row['master_name']}\n"
+                    f"Услуга: {row.get('service_title') or 'Услуга'}\n"
+                    f"Дата: {row['day']}\n"
+                    f"Время: {row['time']}\n\n"
+                    f"До записи осталось около 3 часов."
+                )
+                send_telegram_message(row["telegram_id"], text)
+
+                cur.execute(
+                    """
+                    update bookings
+                    set reminder_3h_sent = true
+                    where id = %s
+                    """,
+                    (row["id"],),
+                )
+                sent_3h += 1
+
+        conn.commit()
+
+    return {
+        "ok": True,
+        "sent_24h": sent_24h,
+        "sent_3h": sent_3h,
+    }
 
 # --- Favorites ---
 @app.get("/favorites/{telegram_id}")
