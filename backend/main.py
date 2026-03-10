@@ -8,13 +8,15 @@ from urllib.parse import parse_qsl
 
 import requests
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from db import get_conn
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+
+REMINDER_JOB_TOKEN = os.getenv("REMINDER_JOB_TOKEN", "")
 
 app = FastAPI(title="Zento API")
 
@@ -999,7 +1001,13 @@ def update_booking_status(
 
 
 @app.post("/jobs/send-reminders")
-def send_booking_reminders():
+def send_booking_reminders(x_job_token: str | None = Header(default=None)):
+    if not REMINDER_JOB_TOKEN:
+        raise HTTPException(status_code=500, detail="reminder_job_token_not_configured")
+
+    if x_job_token != REMINDER_JOB_TOKEN:
+        raise HTTPException(status_code=403, detail="forbidden")
+
     now = datetime.now()
 
     sent_24h = 0
@@ -1017,7 +1025,10 @@ def send_booking_reminders():
         items_24h = cur.fetchall()
 
         for row in items_24h:
-            booking_dt = datetime.strptime(f"{row['day']} {row['time']}", "%Y-%m-%d %H:%M")
+            booking_dt = datetime.strptime(
+                f"{row['day']} {row['time']}",
+                "%Y-%m-%d %H:%M",
+            )
             diff = booking_dt - now
 
             if timedelta(hours=23, minutes=30) <= diff <= timedelta(hours=24, minutes=30):
@@ -1052,7 +1063,10 @@ def send_booking_reminders():
         items_3h = cur.fetchall()
 
         for row in items_3h:
-            booking_dt = datetime.strptime(f"{row['day']} {row['time']}", "%Y-%m-%d %H:%M")
+            booking_dt = datetime.strptime(
+                f"{row['day']} {row['time']}",
+                "%Y-%m-%d %H:%M",
+            )
             diff = booking_dt - now
 
             if timedelta(hours=2, minutes=30) <= diff <= timedelta(hours=3, minutes=30):
