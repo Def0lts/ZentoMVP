@@ -149,7 +149,14 @@ export default function MyBookings() {
                   Статус: <b>{statusLabel(b.status)}</b>
                 </div>
 
-                <div className="salon-actions">
+                <div
+                  className="salon-actions"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 10,
+                  }}
+                >
                   {(b.status === "pending" || b.status === "confirmed") && (
                     <button
                       className="btn-danger"
@@ -172,10 +179,6 @@ export default function MyBookings() {
                     }
                   >
                     Записаться снова
-                  </button>
-
-                  <button className="btn-ghost" onClick={() => nav("/profile")}>
-                    Профиль
                   </button>
                 </div>
               </div>
