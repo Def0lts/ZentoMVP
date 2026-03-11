@@ -159,6 +159,20 @@ export default function MyBookings() {
                       {busyId === b.id ? "Отмена..." : "Отменить"}
                     </button>
                   )}
+                  <button
+                    className="btn-primary"
+                    onClick={() =>
+                      nav(
+                        `/booking/${b.salon_id}/service?masterId=${b.master_id}&masterName=${encodeURIComponent(
+                          b.master_name,
+                        )}&serviceId=${b.service_id ?? ""}&serviceTitle=${encodeURIComponent(
+                          b.service_title ?? "",
+                        )}&servicePrice=${b.service_price ?? ""}&serviceDuration=${b.service_duration ?? ""}`,
+                      )
+                    }
+                  >
+                    Записаться снова
+                  </button>
 
                   <button className="btn-ghost" onClick={() => nav("/profile")}>
                     Профиль
