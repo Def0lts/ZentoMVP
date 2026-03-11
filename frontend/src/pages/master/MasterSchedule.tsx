@@ -351,56 +351,6 @@ export default function MasterSchedule() {
           )}
         </div>
 
-        <div className="section-title">Заблокированные слоты</div>
-
-        {!loadingBlocked && blocked.length === 0 && (
-          <div style={{ padding: 8, opacity: 0.75 }}>
-            На этот день блокировок нет
-          </div>
-        )}
-
-        <div style={{ display: "grid", gap: 10 }}>
-          {blocked.map((s) => (
-            <div key={s.id} className="menu-item">
-              <div className="menu-left">
-                <div className="menu-ico">⛔</div>
-                <div>
-                  <div className="menu-title">{s.time}</div>
-                  <div className="menu-sub">{s.day}</div>
-                </div>
-              </div>
-
-              <button
-                className="btn-ghost"
-                disabled={busy || !master}
-                onClick={async () => {
-                  if (!master) return;
-
-                  try {
-                    setBusy(true);
-                    setMsg(null);
-
-                    await unblockSlot({
-                      master_id: master.id,
-                      day: s.day,
-                      time: s.time,
-                    });
-
-                    setMsg(`Слот ${s.time} освобождён ✅`);
-                    await loadBlocked();
-                  } catch {
-                    setMsg("Ошибка: не удалось освободить слот");
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                Освободить
-              </button>
-            </div>
-          ))}
-        </div>
-
         <BottomNav profilePath="/master" />
       </div>
     </div>
