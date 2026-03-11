@@ -70,8 +70,32 @@ export default function ChooseMaster() {
 
             return (
               <div key={m.id} className="salon-card" style={{ padding: 12 }}>
-                <div className="salon-img">
-                  {m.photo_url ? <img src={m.photo_url} alt={m.name} /> : "👤"}
+                <div
+                  className="salon-img"
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: "50%",
+                    overflow: "hidden",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "#eee",
+                  }}
+                >
+                  {m.photo_url ? (
+                    <img
+                      src={m.photo_url}
+                      alt={m.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  ) : (
+                    "👤"
+                  )}
                 </div>
 
                 <div style={{ flex: 1 }}>
