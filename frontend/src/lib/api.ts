@@ -153,6 +153,49 @@ export async function blockSlot(input: { master_id: number; day: string; time: s
   return res.json();
 }
 
+
+export async function blockSlotRange(input: {
+  master_id: number;
+  day: string;
+  from_time: string;
+  to_time: string;
+}) {
+  const [fromH, fromM] = input.from_time.split(":").map(Number);
+  const [toH, toM] = input.to_time.split(":").map(Number);
+
+  const fromMinutes = fromH * 60 + fromM;
+  const toMinutes = toH * 60 + toM;
+
+  if (fromMinutes > toMinutes) {
+    throw new Error("invalid_range");
+  }
+
+  const times: string[] = [];
+  for (let t = fromMinutes; t <= toMinutes; t += 30) {
+    const hh = String(Math.floor(t / 60)).padStart(2, "0");
+    const mm = String(t % 60).padStart(2, "0");
+    times.push(`${hh}:${mm}`);
+  }
+
+  let created = 0;
+
+  for (const time of times) {
+    try {
+      await blockSlot({
+        master_id: input.master_id,
+        day: input.day,
+        time,
+      });
+      created += 1;
+    } catch {
+      // уже занят/заблокирован — просто пропускаем
+    }
+  }
+
+  return { ok: true, created };
+}
+
+
 export async function unblockSlot(params: { master_id: number; day: string; time: string }) {
   const q = new URLSearchParams({
     master_id: String(params.master_id),

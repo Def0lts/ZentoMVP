@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../../components/BottomNav";
 import {
-  blockSlot,
+  blockSlotRange,
   getBlockedSlots,
   getMasterByTelegram,
   unblockSlot,
@@ -42,7 +42,8 @@ export default function MasterSchedule() {
 
   const [master, setMaster] = useState<MasterAccount | null>(null);
   const [blockDay, setBlockDay] = useState(getTodayDate());
-  const [blockTime, setBlockTime] = useState("15:00");
+  const [fromTime, setFromTime] = useState("15:00");
+  const [toTime, setToTime] = useState("16:00");
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -94,10 +95,11 @@ export default function MasterSchedule() {
         });
         setMsg(`Слот ${time} освобождён ✅`);
       } else {
-        await blockSlot({
+        await blockSlotRange({
           master_id: master.id,
           day: blockDay,
-          time,
+          from_time: time,
+          to_time: time,
         });
         setMsg(`Слот ${time} занят ✅`);
       }
@@ -105,6 +107,47 @@ export default function MasterSchedule() {
       await loadBlocked();
     } catch {
       setMsg("Ошибка: не удалось изменить слот");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function blockRange() {
+    if (!master) return;
+
+    const fromIndex = timeGrid.indexOf(fromTime);
+    const toIndex = timeGrid.indexOf(toTime);
+
+    if (fromIndex === -1 || toIndex === -1) {
+      setMsg("Ошибка: выбрано неверное время");
+      return;
+    }
+
+    if (fromIndex > toIndex) {
+      setMsg("Время 'с' не может быть позже времени 'до'");
+      return;
+    }
+
+    try {
+      setBusy(true);
+      setMsg(null);
+
+      const result = await blockSlotRange({
+        master_id: master.id,
+        day: blockDay,
+        from_time: fromTime,
+        to_time: toTime,
+      });
+
+      await loadBlocked();
+
+      setMsg(
+        result.created > 0
+          ? `Заблокировано слотов: ${result.created} ✅`
+          : "Новые слоты не были добавлены",
+      );
+    } catch {
+      setMsg("Ошибка: не удалось занять диапазон");
     } finally {
       setBusy(false);
     }
@@ -243,58 +286,62 @@ export default function MasterSchedule() {
           })}
         </div>
 
-        <div className="section-title">Ручная блокировка</div>
+        <div className="section-title">Заблокировать диапазон</div>
 
         <div className="card" style={{ padding: 16, borderRadius: 26 }}>
           <div style={{ fontWeight: 900, fontSize: 14 }}>
-            Занять время вручную
+            Блокировка по диапазону
           </div>
           <div className="notice">
-            Используй, если запись пришла через WhatsApp или клиент записался
-            лично.
+            Укажи время начала и конца только по сетке 30 минут.
           </div>
 
-          <div className="form">
-            <input
-              className="input"
-              type="date"
-              value={blockDay}
-              onChange={(e) => setBlockDay(e.target.value)}
-            />
-            <input
-              className="input"
-              type="time"
-              value={blockTime}
-              onChange={(e) => setBlockTime(e.target.value)}
-            />
+          <div
+            style={{
+              display: "grid",
+              gap: 10,
+              marginTop: 12,
+            }}
+          >
+            <label style={{ fontSize: 13, fontWeight: 700 }}>
+              С
+              <select
+                className="input"
+                value={fromTime}
+                onChange={(e) => setFromTime(e.target.value)}
+                style={{ marginTop: 6 }}
+              >
+                {timeGrid.map((time) => (
+                  <option key={`from-${time}`} value={time}>
+                    {time}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label style={{ fontSize: 13, fontWeight: 700 }}>
+              До
+              <select
+                className="input"
+                value={toTime}
+                onChange={(e) => setToTime(e.target.value)}
+                style={{ marginTop: 6 }}
+              >
+                {timeGrid.map((time) => (
+                  <option key={`to-${time}`} value={time}>
+                    {time}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
 
           <button
             className="big-primary"
-            disabled={busy || !master || !blockDay || !blockTime}
-            onClick={async () => {
-              if (!master) return;
-
-              try {
-                setBusy(true);
-                setMsg(null);
-
-                await blockSlot({
-                  master_id: master.id,
-                  day: blockDay,
-                  time: blockTime,
-                });
-
-                await loadBlocked();
-                setMsg("Слот занят ✅");
-              } catch {
-                setMsg("Ошибка: не удалось занять слот");
-              } finally {
-                setBusy(false);
-              }
-            }}
+            disabled={busy || !master || !blockDay}
+            onClick={blockRange}
           >
-            {busy ? "Занимаю..." : "Занять"}
+            {busy ? "Блокирую..." : "Заблокировать диапазон"}
           </button>
 
           {msg && (
