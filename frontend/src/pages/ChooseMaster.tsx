@@ -70,8 +70,8 @@ export default function ChooseMaster() {
 
             return (
               <div key={m.id} className="salon-card" style={{ padding: 12 }}>
-                <div className="salon-img" style={{ width: 64, height: 64 }}>
-                  {(m.name ?? "M").slice(0, 1).toUpperCase()}
+                <div className="salon-img">
+                  {m.photo_url ? <img src={m.photo_url} alt={m.name} /> : "👤"}
                 </div>
 
                 <div style={{ flex: 1 }}>
@@ -102,21 +102,19 @@ export default function ChooseMaster() {
                   </div>
 
                   <div className="salon-actions">
-                    <div className="salon-actions">
-                      <button
-                        className="btn-primary"
-                        onClick={() => nav(`/booking/${sid}/service?${qs}`)}
-                      >
-                        Выбрать
-                      </button>
+                    <button
+                      className="btn-primary"
+                      onClick={() => nav(`/booking/${sid}/service?${qs}`)}
+                    >
+                      Выбрать
+                    </button>
 
-                      <button
-                        className="btn-ghost"
-                        onClick={() => nav(`/booking/${sid}/service?${qs}`)}
-                      >
-                        Услуги
-                      </button>
-                    </div>
+                    <button
+                      className="btn-ghost"
+                      onClick={() => nav(`/booking/${sid}/service?${qs}`)}
+                    >
+                      Услуги
+                    </button>
                   </div>
                 </div>
               </div>

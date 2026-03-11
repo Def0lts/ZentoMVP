@@ -470,7 +470,7 @@ def get_salon_masters(salon_id: int):
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute(
             """
-            select id, salon_id, name, role, rating, reviews
+            select id, salon_id, name, role, rating, reviews, photo_url
             from masters
             where salon_id = %s
             order by id

@@ -18,8 +18,8 @@ export type Master = {
   role: string;
   rating: number;
   reviews: number;
+  photo_url?: string | null;
 };
-
 export type Booking = {
   id: number;
   telegram_id: number;
