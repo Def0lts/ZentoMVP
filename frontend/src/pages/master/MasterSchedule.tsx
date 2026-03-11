@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../../components/BottomNav";
 import {
@@ -19,6 +19,23 @@ function getTodayDate() {
   return `${y}-${m}-${d}`;
 }
 
+function generateTimeGrid(start = "10:00", end = "20:00", stepMin = 30) {
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+
+  const startMinutes = sh * 60 + sm;
+  const endMinutes = eh * 60 + em;
+
+  const items: string[] = [];
+  for (let t = startMinutes; t <= endMinutes; t += stepMin) {
+    const hh = String(Math.floor(t / 60)).padStart(2, "0");
+    const mm = String(t % 60).padStart(2, "0");
+    items.push(`${hh}:${mm}`);
+  }
+
+  return items;
+}
+
 export default function MasterSchedule() {
   const nav = useNavigate();
   const telegramId = getTelegramId(1111);
@@ -31,6 +48,8 @@ export default function MasterSchedule() {
 
   const [blocked, setBlocked] = useState<BlockedSlot[]>([]);
   const [loadingBlocked, setLoadingBlocked] = useState(false);
+
+  const timeGrid = useMemo(() => generateTimeGrid("10:00", "20:00", 30), []);
 
   async function loadBlocked() {
     try {
@@ -55,6 +74,39 @@ export default function MasterSchedule() {
       setBlocked(data);
     } finally {
       setLoadingBlocked(false);
+    }
+  }
+
+  async function toggleGridSlot(time: string) {
+    if (!master) return;
+
+    const existing = blocked.find((s) => s.time === time);
+
+    try {
+      setBusy(true);
+      setMsg(null);
+
+      if (existing) {
+        await unblockSlot({
+          master_id: master.id,
+          day: blockDay,
+          time,
+        });
+        setMsg(`Слот ${time} освобождён ✅`);
+      } else {
+        await blockSlot({
+          master_id: master.id,
+          day: blockDay,
+          time,
+        });
+        setMsg(`Слот ${time} занят ✅`);
+      }
+
+      await loadBlocked();
+    } catch {
+      setMsg("Ошибка: не удалось изменить слот");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -119,7 +171,84 @@ export default function MasterSchedule() {
         </div>
 
         <div className="card" style={{ padding: 16, borderRadius: 26 }}>
-          <div style={{ fontWeight: 900, fontSize: 14 }}>Занять время</div>
+          <div style={{ fontWeight: 900, fontSize: 14 }}>Дата расписания</div>
+
+          <div className="form" style={{ marginTop: 10 }}>
+            <input
+              className="input"
+              type="date"
+              value={blockDay}
+              onChange={(e) => setBlockDay(e.target.value)}
+            />
+          </div>
+
+          <div className="notice" style={{ marginTop: 8 }}>
+            Нажми на слот в сетке:
+            <br />• свободный слот → занять
+            <br />• занятый вручную слот → освободить
+          </div>
+        </div>
+
+        <div className="section-title">Сетка дня</div>
+
+        {loadingBlocked && (
+          <div style={{ padding: 8, opacity: 0.8 }}>Загрузка...</div>
+        )}
+
+        <div
+          className="card"
+          style={{
+            padding: 14,
+            borderRadius: 26,
+            display: "grid",
+            gap: 10,
+          }}
+        >
+          {timeGrid.map((time) => {
+            const isBlocked = blocked.some((s) => s.time === time);
+
+            return (
+              <button
+                key={time}
+                disabled={busy || !master}
+                onClick={() => toggleGridSlot(time)}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  width: "100%",
+                  border: "1px solid rgba(16,24,40,0.12)",
+                  borderRadius: 16,
+                  padding: "12px 14px",
+                  background: isBlocked
+                    ? "rgba(255, 99, 132, 0.12)"
+                    : "rgba(255,255,255,0.92)",
+                  cursor: "pointer",
+                  fontSize: 14,
+                  fontWeight: 700,
+                }}
+              >
+                <span>{time}</span>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 800,
+                    color: isBlocked ? "#b42318" : "#067647",
+                  }}
+                >
+                  {isBlocked ? "⛔ Заблокировано" : "✅ Свободно"}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="section-title">Ручная блокировка</div>
+
+        <div className="card" style={{ padding: 16, borderRadius: 26 }}>
+          <div style={{ fontWeight: 900, fontSize: 14 }}>
+            Занять время вручную
+          </div>
           <div className="notice">
             Используй, если запись пришла через WhatsApp или клиент записался
             лично.
@@ -176,10 +305,6 @@ export default function MasterSchedule() {
         </div>
 
         <div className="section-title">Заблокированные слоты</div>
-
-        {loadingBlocked && (
-          <div style={{ padding: 8, opacity: 0.8 }}>Загрузка...</div>
-        )}
 
         {!loadingBlocked && blocked.length === 0 && (
           <div style={{ padding: 8, opacity: 0.75 }}>
