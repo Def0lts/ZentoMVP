@@ -109,41 +109,6 @@ export default function SalonDetails() {
             👤
           </button>
         </div>
-        <div
-          style={{
-            height: 190,
-            borderRadius: 20,
-            overflow: "hidden",
-            border: "1px solid rgba(16,24,40,0.10)",
-            background: "#f3f4f6",
-          }}
-        >
-          {salon.photo_url ? (
-            <img
-              src={salon.photo_url}
-              alt={salon.name}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
-          ) : (
-            <div
-              style={{
-                height: "100%",
-                display: "grid",
-                placeItems: "center",
-                fontWeight: 900,
-                color: "rgba(16,24,40,0.55)",
-                background:
-                  "linear-gradient(135deg, rgba(116,168,255,0.45), rgba(255,255,255,0.95))",
-              }}
-            >
-              {salon.name}
-            </div>
-          )}
-        </div>
 
         <div
           className="card"
@@ -158,16 +123,36 @@ export default function SalonDetails() {
             style={{
               height: 190,
               borderRadius: 20,
-              background:
-                "linear-gradient(135deg, rgba(116,168,255,0.45), rgba(255,255,255,0.95))",
+              overflow: "hidden",
               border: "1px solid rgba(16,24,40,0.10)",
-              display: "grid",
-              placeItems: "center",
-              fontWeight: 900,
-              color: "rgba(16,24,40,0.55)",
+              background: "#f3f4f6",
             }}
           >
-            {salon.name}
+            {salon.photo_url ? (
+              <img
+                src={salon.photo_url}
+                alt={salon.name}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  height: "100%",
+                  display: "grid",
+                  placeItems: "center",
+                  fontWeight: 900,
+                  color: "rgba(16,24,40,0.55)",
+                  background:
+                    "linear-gradient(135deg, rgba(116,168,255,0.45), rgba(255,255,255,0.95))",
+                }}
+              >
+                {salon.name}
+              </div>
+            )}
           </div>
 
           <div style={{ padding: "12px 6px 6px" }}>
