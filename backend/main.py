@@ -228,7 +228,7 @@ def get_salon_by_id(salon_id: int):
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute(
             """
-            select id, name, address, price_from, rating, km, category
+            select id, name, address, price_from, rating, km, category, photo_url
             from salons
             where id = %s
             """,
@@ -448,7 +448,7 @@ def get_salons():
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute(
             """
-            select id, name, address, price_from, rating, km, category
+            select id, name, address, price_from, rating, km, category, photo_url
             from salons
             order by id
             """

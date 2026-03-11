@@ -9,6 +9,7 @@ export type Salon = {
   rating: number;
   km: number;
   category: "nails" | "hair" | "massage" | "brows";
+  photo_url?: string | null;
 };
 
 export type Master = {

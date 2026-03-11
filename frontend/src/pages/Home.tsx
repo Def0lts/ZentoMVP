@@ -189,8 +189,33 @@ export default function Home() {
         <div style={{ display: "grid", gap: 12 }}>
           {recommended.map((s) => (
             <div key={s.id} className="salon-card">
-              <div className="salon-img">
-                {(s.name ?? "S").slice(0, 1).toUpperCase()}
+              <div
+                className="salon-img"
+                style={{
+                  width: 78,
+                  height: 78,
+                  borderRadius: 18,
+                  overflow: "hidden",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "#eee",
+                  flexShrink: 0,
+                }}
+              >
+                {s.photo_url ? (
+                  <img
+                    src={s.photo_url}
+                    alt={s.name}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  (s.name ?? "S").slice(0, 1).toUpperCase()
+                )}
               </div>
 
               <div style={{ flex: 1 }}>
