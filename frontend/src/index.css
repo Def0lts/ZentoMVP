@@ -29,11 +29,12 @@
 html, body {
   height: 100%;
   overflow-x: hidden;
+  overscroll-behavior: none;
 }
 
 body {
   margin: 0;
-  background: #b7c7e6;
+  background: linear-gradient(180deg, #b7c7e6 0%, #dbe6f6 100%);
   /* ВАЖНО: убираем центрирование Vite, иначе мобильный экран ломается */
   display: block;
 }
