@@ -142,7 +142,14 @@ export default function Home() {
           <span style={{ opacity: 0.8 }}>🔎</span>
           <input
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setQ(value);
+
+              if (value.trim().length > 1) {
+                nav(`/salons?q=${encodeURIComponent(value)}`);
+              }
+            }}
             placeholder="Поиск услуги..."
           />
           <button className="btn-ghost" onClick={load}>

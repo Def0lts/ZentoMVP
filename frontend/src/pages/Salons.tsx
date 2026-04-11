@@ -27,9 +27,10 @@ export default function Salons() {
   const nav = useNavigate();
 
   const qp = useMemo(() => new URLSearchParams(loc.search), [loc.search]);
+  const searchQuery = qp.get("q") || "";
   const cat = (qp.get("cat") || "all") as Cat;
 
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(searchQuery);
   const [salons, setSalons] = useState<Salon[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
