@@ -107,7 +107,7 @@ export default function Salons() {
   }
 
   async function loadAvailableToday() {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toLocaleDateString("sv-SE");
 
     const result: number[] = [];
 
@@ -119,7 +119,11 @@ export default function Salons() {
           const res = await fetch(
             `${API_BASE}/slots/free?master_id=${m.id}&day=${today}`,
           );
+
+          if (!res.ok) continue;
+
           const data = await res.json();
+          console.log("MASTER", m.id, data);
 
           if (data.free && data.free.length > 0) {
             result.push(salon.id);
