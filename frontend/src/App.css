@@ -75,15 +75,10 @@
 
 /* category card */
 .cat-card {
-  padding: 12px;
-  border-radius: var(--r-lg);
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.85);
-  box-shadow: 0 8px 22px rgba(16,24,40,0.10);
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  align-items: center;
+  padding: 14px;
 }
 
 .cat-left {
@@ -105,13 +100,8 @@
 .cat-title { font-weight: 800; font-size: 13px; line-height: 1.1; }
 .cat-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .cat-arrow {
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  background: rgba(116,168,255,0.25);
-  border: 1px solid rgba(116,168,255,0.35);
-  display: grid;
-  place-items: center;
+  font-size: 18px;
+  opacity: 0.6;
 }
 
 /* chips */
