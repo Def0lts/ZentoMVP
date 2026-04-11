@@ -149,6 +149,9 @@ export default function Salons() {
       });
     }
     if (todayOnly) {
+      // пока еще не загрузились данные — не фильтруем
+      if (availableTodayIds.length === 0) return list;
+
       list = list.filter((s) => availableTodayIds.includes(s.id));
     }
 
@@ -161,7 +164,7 @@ export default function Salons() {
     }
 
     return list;
-  }, [salons, cat, q, sort, todayOnly]);
+  }, [salons, cat, q, sort, todayOnly, availableTodayIds]);
 
   return (
     <div className="zento-screen">
