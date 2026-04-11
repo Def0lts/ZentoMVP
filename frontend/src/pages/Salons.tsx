@@ -7,6 +7,10 @@ import {
   removeFavorite,
   type Salon,
 } from "../lib/api";
+
+import { getMastersBySalon } from "../lib/api";
+import { API_BASE } from "../lib/api";
+
 import {
   getTelegramId,
   getTelegramInitData,
@@ -36,6 +40,7 @@ export default function Salons() {
 
   const [sort, setSort] = useState<Sort>("none");
   const [todayOnly, setTodayOnly] = useState(false);
+  const [availableTodayIds, setAvailableTodayIds] = useState<number[]>([]);
 
   const title =
     cat === "nails"
@@ -63,7 +68,11 @@ export default function Salons() {
       }
     })();
   }, []);
-
+  useEffect(() => {
+    if (todayOnly) {
+      loadAvailableToday();
+    }
+  }, [todayOnly, salons]);
   async function loadFavorites() {
     try {
       const data = await getFavorites(telegramId);
@@ -97,6 +106,32 @@ export default function Salons() {
     }
   }
 
+  async function loadAvailableToday() {
+    const today = new Date().toISOString().slice(0, 10);
+
+    const result: number[] = [];
+
+    for (const salon of salons) {
+      try {
+        const masters = await getMastersBySalon(salon.id);
+
+        for (const m of masters) {
+          const res = await fetch(
+            `${API_BASE}/slots/free?master_id=${m.id}&day=${today}`,
+          );
+          const data = await res.json();
+
+          if (data.free && data.free.length > 0) {
+            result.push(salon.id);
+            break;
+          }
+        }
+      } catch {}
+    }
+
+    setAvailableTodayIds(result);
+  }
+
   const filtered = useMemo(() => {
     let list =
       cat === "all" ? salons : salons.filter((s) => s.category === cat);
@@ -109,9 +144,8 @@ export default function Salons() {
         return name.includes(query) || addr.includes(query);
       });
     }
-
     if (todayOnly) {
-      list = [...list];
+      list = list.filter((s) => availableTodayIds.includes(s.id));
     }
 
     if (sort === "price_asc") {
