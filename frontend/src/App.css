@@ -87,6 +87,15 @@
   gap: 10px;
 }
 
+.cat-card {
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.cat-card:active {
+  transform: scale(0.98);
+}
+
 .cat-left {
   display: flex;
   align-items: center;
@@ -110,13 +119,16 @@
 }
 
 .cat-title {
-  font-weight: 700;
-
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 1.1;
 }
-.cat-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.cat-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
 .cat-arrow {
   width: 26px;
   height: 26px;

@@ -171,7 +171,6 @@ export default function Home() {
                   <div className="cat-sub">{c.sub}</div>
                 </div>
               </div>
-              <div className="cat-arrow">›</div>
             </div>
           ))}
         </div>
