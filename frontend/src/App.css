@@ -92,6 +92,7 @@
   align-items: center;
   gap: 10px;
   flex: 1;
+  min-width: 0;
 }
 
 .icon-circle {
@@ -108,7 +109,13 @@
   justify-content: center;
 }
 
-.cat-title { font-weight: 800; font-size: 13px; line-height: 1.1; }
+.cat-title {
+  font-weight: 700;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .cat-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .cat-arrow {
   width: 26px;
