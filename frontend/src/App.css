@@ -7,6 +7,7 @@
 .zento-screen {
   min-height: 100vh;
   display: flex;
+  background: linear-gradient(180deg, #b7c7e6 0%, #dbe6f6 100%);
   justify-content: center;
   padding: 18px 14px 22px;
 }
@@ -16,6 +17,7 @@
   max-width: 390px; /* как на макете 390x844 */
   min-height: calc(100vh - 40px);
   position: relative;
+  background: transparent;
 }
 
 /* карточки */

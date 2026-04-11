@@ -33,7 +33,7 @@ html, body {
 
 body {
   margin: 0;
-  background: transparent;
+  background: #b7c7e6;
   /* ВАЖНО: убираем центрирование Vite, иначе мобильный экран ломается */
   display: block;
 }
