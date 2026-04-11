@@ -394,6 +394,25 @@
 .center {
   text-align: center;
 }
+/* ===== Confirm/Success ===== */
+
+.confirm-card {
+  padding: 16px;
+  border-radius: 26px;
+}
+
+.confirm-title {
+  font-weight: 900;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.confirm-block {
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
 
 
 /* ===== Profile / Menu ===== */

@@ -134,40 +134,35 @@ export default function Confirm() {
           <div style={{ width: 44 }} />
         </div>
 
-        <div className="page-title">Подтвердите запись</div>
+        <div className="card confirm-card">
+          <div className="confirm-title">Подтверждение записи</div>
 
-        <div className="slot-box">
-          <div style={{ fontWeight: 900, fontSize: 13 }}>Детали записи</div>
-
-          <div className="notice" style={{ marginTop: 6 }}>
-            Мастер: <b>{masterName || "Загрузка..."}</b>
-          </div>
-
-          <div className="notice">
-            Услуга: <b>{serviceTitle || "—"}</b>
-          </div>
-
-          <div className="notice">
-            Цена: <b>{servicePrice > 0 ? `${servicePrice} ₸` : "—"}</b>
-          </div>
-
-          <div className="notice">
-            Длительность:{" "}
-            <b>{serviceDuration > 0 ? `${serviceDuration} мин` : "—"}</b>
-          </div>
-
-          <div className="notice">
-            Дата: <b>{day || "—"}</b>
-          </div>
-
-          <div className="notice">
-            Время: <b>{time || "—"}</b>
+          <div className="confirm-block">
+            <div>
+              <b>Мастер:</b> {masterName || "Загрузка..."}
+            </div>
+            <div>
+              <b>Услуга:</b> {serviceTitle || "—"}
+            </div>
+            <div>
+              <b>Дата:</b> {day || "—"}
+            </div>
+            <div>
+              <b>Время:</b> {time || "—"}
+            </div>
+            <div>
+              <b>Цена:</b> {servicePrice > 0 ? `${servicePrice} ₸` : "—"}
+            </div>
+            <div>
+              <b>Длительность:</b>{" "}
+              {serviceDuration > 0 ? `${serviceDuration} мин` : "—"}
+            </div>
           </div>
 
           <div className="form">
             <input
               className="input"
-              placeholder="Имя"
+              placeholder="Ваше имя"
               value={name}
               maxLength={40}
               onChange={(e) => setName(normalizeName(e.target.value))}
@@ -183,15 +178,22 @@ export default function Confirm() {
             />
           </div>
 
-          <div className="notice">
-            Запись бесплатная. Оплата производится в салоне.
-          </div>
+          <div className="notice">Оплата производится в салоне</div>
 
           {error && (
             <div style={{ marginTop: 10, color: "crimson", fontWeight: 700 }}>
               {error}
             </div>
           )}
+
+          <button
+            className="big-primary"
+            onClick={onSubmit}
+            disabled={saving}
+            style={{ marginTop: 12 }}
+          >
+            {saving ? "Создаю..." : "Подтвердить запись"}
+          </button>
         </div>
 
         <button className="big-primary" onClick={onSubmit} disabled={saving}>
