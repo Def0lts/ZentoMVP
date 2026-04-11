@@ -414,6 +414,42 @@
 }
 
 
+.confirm-section {
+  background: rgba(255,255,255,0.6);
+  border-radius: 16px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.confirm-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.confirm-row:last-child {
+  border-bottom: none;
+}
+
+.confirm-row span {
+  color: #6b7280;
+}
+
+
+.input {
+  border-radius: 14px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  background: rgba(255,255,255,0.9);
+}
+
+.confirm-master {
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
 
 /* ===== Profile / Menu ===== */
 

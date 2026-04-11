@@ -137,25 +137,32 @@ export default function Confirm() {
         <div className="card confirm-card">
           <div className="confirm-title">Подтверждение записи</div>
 
-          <div className="confirm-block">
-            <div>
-              <b>Мастер:</b> {masterName || "Загрузка..."}
+          <div className="confirm-master">👤 {masterName}</div>
+
+          <div className="confirm-section">
+            <div className="confirm-row">
+              <span>Мастер</span>
+              <b>{masterName || "Загрузка..."}</b>
             </div>
-            <div>
-              <b>Услуга:</b> {serviceTitle || "—"}
+
+            <div className="confirm-row">
+              <span>Услуга</span>
+              <b>{serviceTitle || "—"}</b>
             </div>
-            <div>
-              <b>Дата:</b> {day || "—"}
+
+            <div className="confirm-row">
+              <span>Дата</span>
+              <b>{day || "—"}</b>
             </div>
-            <div>
-              <b>Время:</b> {time || "—"}
+
+            <div className="confirm-row">
+              <span>Время</span>
+              <b>{time || "—"}</b>
             </div>
-            <div>
-              <b>Цена:</b> {servicePrice > 0 ? `${servicePrice} ₸` : "—"}
-            </div>
-            <div>
-              <b>Длительность:</b>{" "}
-              {serviceDuration > 0 ? `${serviceDuration} мин` : "—"}
+
+            <div className="confirm-row">
+              <span>Цена</span>
+              <b>{servicePrice} ₸</b>
             </div>
           </div>
 
@@ -195,10 +202,6 @@ export default function Confirm() {
             {saving ? "Создаю..." : "Подтвердить запись"}
           </button>
         </div>
-
-        <button className="big-primary" onClick={onSubmit} disabled={saving}>
-          {saving ? "Создаю..." : "Подтвердить запись"}
-        </button>
       </div>
     </div>
   );
