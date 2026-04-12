@@ -14,8 +14,7 @@ export default function ChooseMaster() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [nextSlots, setNextSlots] = useState<Record<number, string>>({});
-
+  const [nextSlots, setNextSlots] = useState<Record<number, string[]>>({});
   async function load() {
     if (!sid) return;
     try {
@@ -32,7 +31,7 @@ export default function ChooseMaster() {
   }
   async function loadNextSlots(masters: Master[]) {
     const today = new Date().toISOString().slice(0, 10);
-    const result: Record<number, string> = {};
+    const result: Record<number, string[]> = {};
 
     for (const m of masters) {
       try {
@@ -42,7 +41,7 @@ export default function ChooseMaster() {
         const data = await res.json();
 
         if (data.free && data.free.length > 0) {
-          result[m.id] = data.free[0]; // самое ближайшее время
+          result[m.id] = data.free.slice(0, 3); // 3 ближайших
         }
       } catch {}
     }
@@ -149,24 +148,38 @@ export default function ChooseMaster() {
                   <div className="notice" style={{ marginTop: 6 }}>
                     {m.role} • {m.reviews} отзывов
                   </div>
+
                   {nextSlots[m.id] && (
-                    <div className="notice" style={{ marginTop: 4 }}>
-                      🟢 Сегодня свободно: <b>{nextSlots[m.id]}</b>
+                    <div style={{ marginTop: 6 }}>
+                      <div className="notice" style={{ marginBottom: 4 }}>
+                        🟢 Сегодня свободно
+                      </div>
+
+                      <div style={{ display: "flex", gap: 6 }}>
+                        {nextSlots[m.id].map((t) => (
+                          <button
+                            key={t}
+                            className="btn-ghost"
+                            style={{ padding: "4px 10px", fontSize: 12 }}
+                            onClick={() =>
+                              nav(
+                                `/booking/${sid}/service?masterId=${m.id}&time=${t}`,
+                              )
+                            }
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
+
                   <div className="salon-actions">
                     <button
                       className="btn-primary"
                       onClick={() => nav(`/booking/${sid}/service?${qs}`)}
                     >
                       Выбрать
-                    </button>
-
-                    <button
-                      className="btn-ghost"
-                      onClick={() => nav(`/booking/${sid}/service?${qs}`)}
-                    >
-                      Услуги
                     </button>
                   </div>
                 </div>
