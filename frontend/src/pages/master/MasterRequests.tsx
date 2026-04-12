@@ -156,9 +156,11 @@ export default function MasterRequests() {
             ⚪ История
           </button>
         </div>
-        <div className="loader">
-          <div className="loader-spinner"></div>
-        </div>
+        {loading && (
+          <div className="loader">
+            <div className="loader-spinner"></div>
+          </div>
+        )}
 
         {error && <div style={{ padding: 8, color: "crimson" }}>{error}</div>}
 

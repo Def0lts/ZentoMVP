@@ -47,9 +47,12 @@ export default function ChooseMaster() {
             ↻
           </button>
         </div>
-        <div className="loader">
-          <div className="loader-spinner"></div>
-        </div>
+        {loading && (
+          <div className="loader">
+            <div className="loader-spinner"></div>
+          </div>
+        )}
+
         {error && (
           <div style={{ padding: 12, color: "crimson", fontWeight: 700 }}>
             {error}
