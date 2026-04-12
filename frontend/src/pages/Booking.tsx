@@ -25,6 +25,9 @@ export default function Booking() {
   const servicePrice = Number(qp.get("servicePrice") || 0);
   const serviceDuration = Number(qp.get("serviceDuration") || 0);
 
+  const params = new URLSearchParams(loc.search);
+  const preselectedTime = params.get("time");
+
   if (!masterId || !serviceId) {
     return (
       <div className="zento-screen">
@@ -66,7 +69,10 @@ export default function Booking() {
 
   const [free, setFree] = useState<string[]>([]);
   const [busy, setBusy] = useState<string[]>([]);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(
+    preselectedTime,
+  );
+
   async function load() {
     const res = await fetch(
       `${API_BASE}/slots/free?master_id=${masterId}&day=${day}&service_id=${serviceId}`,
@@ -79,7 +85,6 @@ export default function Booking() {
 
   useEffect(() => {
     load();
-    setSelectedTime(null);
   }, [day, masterId]);
 
   function pickTab(next: DayTab) {
