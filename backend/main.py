@@ -445,16 +445,32 @@ def root():
 # --- Salons / masters ---
 @app.get("/salons")
 def get_salons():
-    with get_conn() as conn, conn.cursor() as cur:
-        cur.execute(
-            """
-            select id, name, address, price_from, rating, km, category, photo_url
-            from salons
-            order by id
-            """
-        )
-        rows = cur.fetchall()
-    return rows
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT id, name, address, price_from, rating, km, category, photo_url, lat, lon
+        FROM salons
+    """)
+
+    rows = cur.fetchall()
+
+    result = []
+    for r in rows:
+        result.append({
+            "id": r[0],
+            "name": r[1],
+            "address": r[2],
+            "price_from": r[3],
+            "rating": r[4],
+            "km": r[5],
+            "category": r[6],
+            "photo_url": r[7],
+            "lat": r[8],
+            "lon": r[9],
+        })
+
+    return result
 
 
 @app.get("/salons/{salon_id}")

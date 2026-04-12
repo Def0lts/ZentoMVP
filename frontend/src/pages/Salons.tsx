@@ -22,7 +22,6 @@ type Cat = "all" | "nails" | "hair" | "massage" | "brows";
 type Sort = "none" | "price_asc" | "price_desc";
 
 export default function Salons() {
-  console.log("RENDER");
   const loc = useLocation();
   const nav = useNavigate();
 
@@ -82,12 +81,11 @@ export default function Salons() {
           lon: pos.coords.longitude,
         });
       },
-      () => {
-        console.log("Геолокация не разрешена");
+      (err) => {
+        console.log("GEO ERROR:", err);
       },
     );
   }, []);
-
   useEffect(() => {
     if (todayOnly) {
       loadAvailableToday();
