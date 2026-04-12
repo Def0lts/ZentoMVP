@@ -14,6 +14,8 @@ export default function ChooseService() {
   const masterId = Number(qp.get("masterId") || 0);
   const masterName = qp.get("masterName") || "";
 
+  const time = qp.get("time");
+
   const [items, setItems] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -120,6 +122,7 @@ export default function ChooseService() {
               serviceTitle: s.title,
               servicePrice: String(s.price),
               serviceDuration: String(s.duration_min),
+              time: time || "",
             }).toString();
 
             return (
