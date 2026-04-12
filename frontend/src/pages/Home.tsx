@@ -12,6 +12,7 @@ import {
   getTelegramId,
   getTelegramInitData,
   getProfileRoute,
+  getStartParam,
 } from "../lib/telegram";
 
 import BottomNav from "../components/BottomNav";
@@ -84,6 +85,15 @@ export default function Home() {
   useEffect(() => {
     load();
     loadFavorites();
+  }, []);
+
+  useEffect(() => {
+    const start = getStartParam();
+
+    if (start && start.startsWith("salon_")) {
+      const salonId = start.replace("salon_", "");
+      nav(`/salons/${salonId}`);
+    }
   }, []);
 
   const recommended = useMemo(() => {
