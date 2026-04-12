@@ -69,11 +69,13 @@ export default function Salons() {
       }
     })();
   }, []);
+
   useEffect(() => {
     if (todayOnly) {
       loadAvailableToday();
     }
-  }, [todayOnly, salons]);
+  }, [todayOnly]);
+
   async function loadFavorites() {
     try {
       const data = await getFavorites(telegramId);
@@ -108,33 +110,19 @@ export default function Salons() {
   }
 
   async function loadAvailableToday() {
-    const today = new Date().toLocaleDateString("sv-SE");
+    try {
+      const today = new Date().toISOString().slice(0, 10);
 
-    const result: number[] = [];
+      const res = await fetch(
+        `${API_BASE}/salons/available-today?day=${today}`,
+      );
 
-    for (const salon of salons) {
-      try {
-        const masters = await getMastersBySalon(salon.id);
+      const data = await res.json();
 
-        for (const m of masters) {
-          const res = await fetch(
-            `${API_BASE}/slots/free?master_id=${m.id}&day=${today}`,
-          );
-
-          if (!res.ok) continue;
-
-          const data = await res.json();
-          console.log("MASTER", m.id, data);
-
-          if (data.free && data.free.length > 0) {
-            result.push(salon.id);
-            break;
-          }
-        }
-      } catch {}
+      setAvailableTodayIds(data.salon_ids || []);
+    } catch (e) {
+      console.error(e);
     }
-
-    setAvailableTodayIds(result);
   }
 
   const filtered = useMemo(() => {
@@ -150,9 +138,6 @@ export default function Salons() {
       });
     }
     if (todayOnly) {
-      // пока еще не загрузились данные — не фильтруем
-      if (availableTodayIds.length === 0) return list;
-
       list = list.filter((s) => availableTodayIds.includes(s.id));
     }
 

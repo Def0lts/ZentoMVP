@@ -762,6 +762,41 @@ def unblock_slot(master_id: int, day: str, time: str):
     return {"ok": True, "removed": removed}
 
 
+@app.get("/salons/available-today")
+def salons_available_today(day: str):
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("""
+            select distinct s.id
+            from salons s
+            join masters m on m.salon_id = s.id
+        """)
+        rows = cur.fetchall()
+
+    # дальше используем уже существующую логику free slots
+    result = []
+
+    for r in rows:
+        salon_id = r["id"]
+
+        with get_conn() as conn, conn.cursor() as cur:
+            cur.execute("""
+                select id from masters where salon_id = %s
+            """, (salon_id,))
+            masters = cur.fetchall()
+
+        for m in masters:
+            free = get_free_slots(
+                master_id=m["id"],
+                day=day,
+                service_id=None
+            )
+
+            if free["free"]:
+                result.append(salon_id)
+                break
+
+    return {"salon_ids": result}
+
 # --- Bookings ---
 @app.post("/bookings", response_model=Booking)
 def create_booking(payload: BookingCreate):
