@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import { getMastersBySalon, type Master } from "../lib/api";
+import { API_BASE } from "../lib/api";
 
 export default function ChooseMaster() {
   const nav = useNavigate();
@@ -13,6 +14,8 @@ export default function ChooseMaster() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [nextSlots, setNextSlots] = useState<Record<number, string>>({});
+
   async function load() {
     if (!sid) return;
     try {
@@ -20,11 +23,31 @@ export default function ChooseMaster() {
       setError(null);
       const data = await getMastersBySalon(sid);
       setItems(data);
+      await loadNextSlots(data);
     } catch {
       setError("Не удалось загрузить мастеров");
     } finally {
       setLoading(false);
     }
+  }
+  async function loadNextSlots(masters: Master[]) {
+    const today = new Date().toISOString().slice(0, 10);
+    const result: Record<number, string> = {};
+
+    for (const m of masters) {
+      try {
+        const res = await fetch(
+          `${API_BASE}/slots/free?master_id=${m.id}&day=${today}`,
+        );
+        const data = await res.json();
+
+        if (data.free && data.free.length > 0) {
+          result[m.id] = data.free[0]; // самое ближайшее время
+        }
+      } catch {}
+    }
+
+    setNextSlots(result);
   }
 
   useEffect(() => {
@@ -126,7 +149,11 @@ export default function ChooseMaster() {
                   <div className="notice" style={{ marginTop: 6 }}>
                     {m.role} • {m.reviews} отзывов
                   </div>
-
+                  {nextSlots[m.id] && (
+                    <div className="notice" style={{ marginTop: 4 }}>
+                      🟢 Сегодня свободно: <b>{nextSlots[m.id]}</b>
+                    </div>
+                  )}
                   <div className="salon-actions">
                     <button
                       className="btn-primary"
