@@ -22,6 +22,7 @@ type Cat = "all" | "nails" | "hair" | "massage" | "brows";
 type Sort = "none" | "price_asc" | "price_desc";
 
 export default function Salons() {
+  console.log("RENDER");
   const loc = useLocation();
   const nav = useNavigate();
 
