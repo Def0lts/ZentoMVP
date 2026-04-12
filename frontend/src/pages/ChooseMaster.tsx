@@ -148,19 +148,18 @@ export default function ChooseMaster() {
                   <div className="notice" style={{ marginTop: 6 }}>
                     {m.role} • {m.reviews} отзывов
                   </div>
-
                   {nextSlots[m.id] && (
-                    <div style={{ marginTop: 6 }}>
-                      <div className="notice" style={{ marginBottom: 4 }}>
-                        🟢 Сегодня свободно
+                    <div className="master-slots">
+                      <div className="master-slots-label">
+                        <span className="dot" />
+                        Сегодня свободно
                       </div>
 
-                      <div style={{ display: "flex", gap: 6 }}>
+                      <div className="master-slots-list">
                         {nextSlots[m.id].map((t) => (
                           <button
                             key={t}
-                            className="btn-ghost"
-                            style={{ padding: "4px 10px", fontSize: 12 }}
+                            className="slot-pill"
                             onClick={() =>
                               nav(
                                 `/booking/${sid}/service?masterId=${m.id}&time=${t}`,
