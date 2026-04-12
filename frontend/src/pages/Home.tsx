@@ -192,7 +192,11 @@ export default function Home() {
                 <div className="icon-circle">{c.icon}</div>
                 <div>
                   <div className="cat-title">{c.title}</div>
-                  <div className="cat-sub">{c.sub}</div>
+                  <div className="cat-sub">
+                    {categoryCounts[c.key] > 0
+                      ? `${categoryCounts[c.key]} салонов`
+                      : "Нет салонов"}
+                  </div>
                 </div>
               </div>
             </div>
