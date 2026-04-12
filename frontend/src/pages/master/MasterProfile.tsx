@@ -35,7 +35,9 @@ export default function MasterProfile() {
     return (
       <div className="zento-screen">
         <div className="zento-phone">
-          <div style={{ padding: 16 }}>Загрузка...</div>
+          <div className="loader-full">
+            <div className="loader-spinner"></div>
+          </div>
         </div>
       </div>
     );

@@ -497,6 +497,13 @@
   }
 }
 
+.loader-full {
+  height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ===== Profile / Menu ===== */
 
 .profile-card {

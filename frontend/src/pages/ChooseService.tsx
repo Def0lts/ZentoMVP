@@ -93,9 +93,10 @@ export default function ChooseService() {
             Мастер: <b>{masterName}</b>
           </div>
         )}
-
         {loading && (
-          <div style={{ padding: 12, opacity: 0.8 }}>Загрузка...</div>
+          <div className="loader">
+            <div className="loader-spinner"></div>
+          </div>
         )}
 
         {error && (

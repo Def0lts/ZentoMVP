@@ -76,10 +76,15 @@ export default function SalonDetails() {
   if (loading) {
     return (
       <div className="zento-screen">
-        <div className="zento-phone">Загрузка...</div>
+        <div className="zento-phone">
+          <div className="loader-full">
+            <div className="loader-spinner"></div>
+          </div>
+        </div>
       </div>
     );
   }
+
   if (!salon) {
     return (
       <div className="zento-screen">
