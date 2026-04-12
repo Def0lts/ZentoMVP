@@ -19,17 +19,24 @@ import BottomNav from "../components/BottomNav";
 
 type Cat = "nails" | "hair" | "massage" | "brows";
 
-const categories: { key: Cat; title: string; sub: string; icon: string }[] = [
-  { key: "nails", title: "Маникюр", sub: "20+ салонов", icon: "💅" },
-  { key: "hair", title: "Парикмахер", sub: "90+ салонов", icon: "💇‍♀️" },
-  { key: "massage", title: "Массаж", sub: "60+ салонов", icon: "💆" },
-  { key: "brows", title: "Брови и ресницы", sub: "80+ салонов", icon: "👁️" },
+const categories: { key: Cat; title: string; icon: string }[] = [
+  { key: "nails", title: "Маникюр", icon: "💅" },
+  { key: "hair", title: "Парикмахер", icon: "💇‍♀️" },
+  { key: "massage", title: "Массаж", icon: "💆" },
+  { key: "brows", title: "Брови и ресницы", icon: "👁️" },
 ];
 
 export default function Home() {
   const nav = useNavigate();
 
   const [salons, setSalons] = useState<Salon[]>([]);
+  const categoryCounts = {
+    all: salons.length,
+    hair: salons.filter((s) => s.category === "hair").length,
+    nails: salons.filter((s) => s.category === "nails").length,
+    massage: salons.filter((s) => s.category === "massage").length,
+    brows: salons.filter((s) => s.category === "brows").length,
+  };
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [error, setError] = useState<string | null>(null);
