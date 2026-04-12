@@ -3,7 +3,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 export default function Success() {
   const nav = useNavigate();
   const loc = useLocation();
-  const state = (loc.state ?? {}) as { bookingId?: number };
+  const state = (loc.state ?? {}) as {
+    bookingId?: number;
+    masterName?: string;
+    serviceTitle?: string;
+    day?: string;
+    time?: string;
+    servicePrice?: number;
+  };
 
   return (
     <div className="zento-screen">
@@ -32,10 +39,39 @@ export default function Success() {
             Статус смотри в “Мои записи”.
           </div>
 
+          <div className="success-details">
+            <div className="success-row">
+              <span>Мастер</span>
+              <b>{state.masterName}</b>
+            </div>
+
+            <div className="success-row">
+              <span>Услуга</span>
+              <b>{state.serviceTitle}</b>
+            </div>
+
+            <div className="success-row">
+              <span>Дата</span>
+              <b>{state.day}</b>
+            </div>
+
+            <div className="success-row">
+              <span>Время</span>
+              <b>{state.time}</b>
+            </div>
+
+            {state.servicePrice && (
+              <div className="success-row">
+                <span>Цена</span>
+                <b>{state.servicePrice} ₸</b>
+              </div>
+            )}
+          </div>
+
           {state.bookingId && (
             <div
               className="center"
-              style={{ marginTop: 10, color: "var(--muted)", fontSize: 12 }}
+              style={{ marginTop: 8, color: "var(--muted)", fontSize: 12 }}
             >
               Номер заявки: <b>{state.bookingId}</b>
             </div>

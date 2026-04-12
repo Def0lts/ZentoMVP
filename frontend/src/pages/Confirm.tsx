@@ -110,8 +110,16 @@ export default function Confirm() {
         customer_name: name.trim(),
         customer_phone: phone.trim(),
       });
-
-      nav("/success", { state: { bookingId: booking.id } });
+      nav("/success", {
+        state: {
+          bookingId: booking.id,
+          masterName,
+          serviceTitle,
+          day,
+          time,
+          servicePrice,
+        },
+      });
     } catch {
       setError("Ошибка создания записи");
     } finally {

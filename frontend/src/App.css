@@ -450,6 +450,28 @@
   margin-bottom: 10px;
 }
 
+.success-details {
+  background: rgba(255,255,255,0.6);
+  border-radius: 16px;
+  padding: 10px;
+  margin-top: 12px;
+}
+
+.success-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.success-row:last-child {
+  border-bottom: none;
+}
+
+.success-row span {
+  color: #6b7280;
+}
 
 /* ===== Profile / Menu ===== */
 
