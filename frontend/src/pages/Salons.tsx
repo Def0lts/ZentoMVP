@@ -8,7 +8,6 @@ import {
   type Salon,
 } from "../lib/api";
 
-import { getMastersBySalon } from "../lib/api";
 import { API_BASE } from "../lib/api";
 
 import {
