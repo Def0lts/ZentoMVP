@@ -261,92 +261,99 @@ export default function Salons() {
         )}
 
         <div style={{ display: "grid", gap: 12 }}>
-          {filtered.map((s) => (
-            <div key={s.id} className="salon-card">
-              <div
-                className="salon-img"
-                style={{
-                  width: 78,
-                  height: 78,
-                  borderRadius: 18,
-                  overflow: "hidden",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: "#eee",
-                  flexShrink: 0,
-                }}
-              >
-                {s.photo_url ? (
-                  <img
-                    src={s.photo_url}
-                    alt={s.name}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                ) : (
-                  (s.name ?? "S").slice(0, 1).toUpperCase()
-                )}
-              </div>
+          {filtered.map((s) => {
+            console.log("USER:", userCoords);
+            console.log("SALON:", s);
 
-              <div style={{ flex: 1 }}>
+            return (
+              <div key={s.id} className="salon-card">
                 <div
+                  className="salon-img"
                   style={{
+                    width: 78,
+                    height: 78,
+                    borderRadius: 18,
+                    overflow: "hidden",
                     display: "flex",
-                    justifyContent: "space-between",
-                    gap: 10,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "#eee",
+                    flexShrink: 0,
                   }}
                 >
-                  <div className="salon-name">{s.name}</div>
-
-                  <button
-                    title="В избранное"
-                    className="btn-ghost"
-                    style={{ padding: "6px 10px" }}
-                    onClick={() => toggleFavorite(s.id)}
-                  >
-                    {favoriteIds.includes(s.id) ? "❤️" : "♡"}
-                  </button>
+                  {s.photo_url ? (
+                    <img
+                      src={s.photo_url}
+                      alt={s.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  ) : (
+                    (s.name ?? "S").slice(0, 1).toUpperCase()
+                  )}
                 </div>
 
-                <div className="salon-meta">
-                  <span>⭐ {s.rating}</span>
-                  <span>
-                    📍{" "}
-                    {userCoords && s.lat && s.lon
-                      ? calcDistance(
-                          userCoords.lat,
-                          userCoords.lon,
-                          s.lat,
-                          s.lon,
-                        ).toFixed(1)
-                      : s.km}{" "}
-                    км
-                  </span>
-                  <span>от {s.price_from} ₸</span>
-                </div>
-
-                <div className="salon-actions">
-                  <button
-                    className="btn-primary"
-                    onClick={() => nav(`/salons/${s.id}/masters`)}
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 10,
+                    }}
                   >
-                    Записаться
-                  </button>
+                    <div className="salon-name">{s.name}</div>
 
-                  <button
-                    className="btn-ghost"
-                    onClick={() => nav(`/salons/${s.id}`)}
-                  >
-                    Подробнее
-                  </button>
+                    <button
+                      title="В избранное"
+                      className="btn-ghost"
+                      style={{ padding: "6px 10px" }}
+                      onClick={() => toggleFavorite(s.id)}
+                    >
+                      {favoriteIds.includes(s.id) ? "❤️" : "♡"}
+                    </button>
+                  </div>
+
+                  <div className="salon-meta">
+                    <span>⭐ {s.rating}</span>
+
+                    <span>
+                      📍{" "}
+                      {userCoords && s.lat && s.lon
+                        ? calcDistance(
+                            userCoords.lat,
+                            userCoords.lon,
+                            s.lat,
+                            s.lon,
+                          ).toFixed(1)
+                        : s.km}{" "}
+                      км
+                    </span>
+
+                    <span>от {s.price_from} ₸</span>
+                  </div>
+
+                  <div className="salon-actions">
+                    <button
+                      className="btn-primary"
+                      onClick={() => nav(`/salons/${s.id}/masters`)}
+                    >
+                      Записаться
+                    </button>
+
+                    <button
+                      className="btn-ghost"
+                      onClick={() => nav(`/salons/${s.id}`)}
+                    >
+                      Подробнее
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <BottomNav />
