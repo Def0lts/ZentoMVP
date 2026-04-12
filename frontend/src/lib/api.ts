@@ -8,6 +8,10 @@ export type Salon = {
   price_from: number;
   rating: number;
   km: number;
+  
+  lat?: number;
+  lon?: number;
+
   category: "nails" | "hair" | "massage" | "brows";
   photo_url?: string | null;
 };

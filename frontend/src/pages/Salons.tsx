@@ -38,6 +38,11 @@ export default function Salons() {
   const telegramId = getTelegramId(1111);
   const initData = getTelegramInitData();
 
+  const [userCoords, setUserCoords] = useState<{
+    lat: number;
+    lon: number;
+  } | null>(null);
+
   const [sort, setSort] = useState<Sort>("none");
   const [todayOnly, setTodayOnly] = useState(false);
   const [availableTodayIds, setAvailableTodayIds] = useState<number[]>([]);
@@ -68,6 +73,19 @@ export default function Salons() {
       }
     })();
   }, []);
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserCoords({
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+        });
+      },
+      () => {
+        console.log("Геолокация не разрешена");
+      },
+    );
+  }, []);
 
   useEffect(() => {
     if (todayOnly) {
@@ -82,6 +100,27 @@ export default function Salons() {
     } catch {
       // ignore
     }
+  }
+
+  function calcDistance(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ) {
+    const R = 6371; // км
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
   }
 
   async function toggleFavorite(salonId: number) {
@@ -275,7 +314,18 @@ export default function Salons() {
 
                 <div className="salon-meta">
                   <span>⭐ {s.rating}</span>
-                  <span>📍 {s.km} км</span>
+                  <span>
+                    📍{" "}
+                    {userCoords && s.lat && s.lon
+                      ? calcDistance(
+                          userCoords.lat,
+                          userCoords.lon,
+                          s.lat,
+                          s.lon,
+                        ).toFixed(1)
+                      : s.km}{" "}
+                    км
+                  </span>
                   <span>от {s.price_from} ₸</span>
                 </div>
 
