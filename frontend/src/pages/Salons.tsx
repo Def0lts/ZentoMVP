@@ -223,8 +223,10 @@ export default function Salons() {
             Цена ↓
           </button>
         </div>
+        <div className="loader">
+          <div className="loader-spinner"></div>
+        </div>
 
-        {loading && <div style={{ padding: 8, opacity: 0.8 }}>Загрузка...</div>}
         {error && <div style={{ padding: 8, color: "crimson" }}>{error}</div>}
 
         {!loading && !error && filtered.length === 0 && (
