@@ -455,27 +455,22 @@ def get_salons():
 
     rows = cur.fetchall()
 
-
     result = []
-
     for r in rows:
-        try:
-            result.append({
-                "id": r[0],
-                "name": r[1],
-                "address": r[2],
-                "price_from": r[3],
-                "rating": r[4],
-                "km": r[5],
-                "category": r[6],
-                "photo_url": r[7],
-                "lat": float(r[8]) if r[8] else None,
-                "lon": float(r[9]) if r[9] else None,
-            })
-        except Exception as e:
-            print("ERROR ROW:", r)
-            print("ERROR:", e)
-    
+        result.append({
+            "id": r[0],
+            "name": r[1],
+            "address": r[2],
+            "price_from": r[3],
+            "rating": r[4],
+            "km": r[5],
+            "category": r[6],
+            "photo_url": r[7],
+            "lat": float(r[8]) if r[8] else None,
+            "lon": float(r[9]) if r[9] else None,
+        })
+
+    return result
 
 
 @app.get("/salons/{salon_id}")
