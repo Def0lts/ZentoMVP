@@ -463,13 +463,14 @@ def get_salons():
             "address": r[2],
             "price_from": r[3],
             "rating": r[4],
-            "km": r[5],
+            "km": r[5],                                                                 
             "category": r[6],
             "photo_url": r[7],
-            "lat": r[8],
-            "lon": r[9],
+            "lat": r[8] if r[8] is not None else None,
+            "lon": r[9] if r[9] is not None else None,
         })
-
+        
+    print(result)
     return result
 
 
