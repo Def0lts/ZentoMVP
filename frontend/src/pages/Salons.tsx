@@ -261,9 +261,6 @@ export default function Salons() {
 
         <div style={{ display: "grid", gap: 12 }}>
           {filtered.map((s) => {
-            console.log("USER:", userCoords);
-            console.log("SALON:", s);
-
             return (
               <div key={s.id} className="salon-card">
                 <div
@@ -317,17 +314,16 @@ export default function Salons() {
 
                   <div className="salon-meta">
                     <span>⭐ {s.rating}</span>
-
                     <span>
                       📍{" "}
-                      {userCoords && s.lat && s.lon
+                      {userCoords && s.lat != null && s.lon != null
                         ? calcDistance(
                             userCoords.lat,
                             userCoords.lon,
                             s.lat,
                             s.lon,
                           ).toFixed(1)
-                        : s.km}{" "}
+                        : (s.km ?? "?")}{" "}
                       км
                     </span>
 

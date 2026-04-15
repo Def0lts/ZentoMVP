@@ -1,4 +1,4 @@
-export const API_BASE = "https://zentomvp.onrender.com";
+export const API_BASE = "https://zentomvp.onrender.com";  
 
 // ---------- Types ----------
 export type Salon = {
