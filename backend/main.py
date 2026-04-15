@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
-from typing import List, Literal, Optional
 import os
+from typing import List, Literal, Optional
+
+
 import json
 import hmac
 import hashlib
@@ -13,6 +15,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from db import get_conn
+
+from dotenv import load_dotenv
+
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
+
+
+
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
@@ -445,32 +458,42 @@ def root():
 # --- Salons / masters ---
 @app.get("/salons")
 def get_salons():
-    conn = get_conn()
-    cur = conn.cursor()
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
 
-    cur.execute("""
-        SELECT id, name, address, price_from, rating, km, category, photo_url, lat, lon
-        FROM salons
-    """)
+        cur.execute("""
+            SELECT id, name, address, price_from, rating, km, category, photo_url, lat, lon
+            FROM salons
+        """)
 
-    rows = cur.fetchall()
+        rows = cur.fetchall()
 
-    result = []
-    for r in rows:
-        result.append({
-            "id": r[0],
-            "name": r[1],
-            "address": r[2],
-            "price_from": r[3],
-            "rating": r[4],
-            "km": r[5],
-            "category": r[6],
-            "photo_url": r[7],
-            "lat": float(r[8]) if r[8] else None,
-            "lon": float(r[9]) if r[9] else None,
-        })
 
-    return result
+
+        result = []
+        for r in rows:
+
+
+            result.append({
+                "id": r["id"],
+                "name": r["name"],
+                "address": r["address"],
+                "price_from": r["price_from"],
+                "rating": r["rating"],
+                "km": r["km"],
+                "category": r["category"],
+                "photo_url": r["photo_url"],
+                "lat": r["lat"],
+                "lon": r["lon"],
+
+            })
+
+        return result
+
+    except Exception as e:
+        print("ERROR:", e)
+        return {"error": str(e)}
 
 
 @app.get("/salons/{salon_id}")
