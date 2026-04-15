@@ -406,8 +406,17 @@ export default function Salons() {
 
         <div style={{ display: "grid", gap: 12 }}>
           {filtered.map((s) => {
+            const isNearest = nearby.length > 0 && s.id === nearby[0].id;
+
             return (
-              <div key={s.id} className="salon-card">
+              <div
+                key={s.id}
+                className="salon-card"
+                style={{
+                  border: isNearest ? "2px solid #4f8cff" : "",
+                  background: isNearest ? "#eef4ff" : "",
+                }}
+              >
                 <div
                   className="salon-img"
                   style={{
@@ -446,6 +455,17 @@ export default function Salons() {
                     }}
                   >
                     <div className="salon-name">{s.name}</div>
+                    {isNearest && (
+                      <div
+                        style={{
+                          fontSize: 11,
+                          color: "#4f8cff",
+                          fontWeight: 600,
+                        }}
+                      >
+                        ⭐ Рекомендуем
+                      </div>
+                    )}
 
                     <button
                       title="В избранное"
