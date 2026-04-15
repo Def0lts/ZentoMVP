@@ -176,10 +176,6 @@ export default function Salons() {
       });
     }
     if (todayOnly) {
-      {
-        todayOnly && loadingToday && <div>Ищем свободные...</div>;
-      }
-
       // пока грузится — ничего не фильтруем
       if (loadingToday) return list;
 
@@ -195,6 +191,29 @@ export default function Salons() {
 
     if (sort === "price_desc") {
       list = [...list].sort((a, b) => b.price_from - a.price_from);
+    }
+
+    if (userCoords) {
+      list = [...list].sort((a, b) => {
+        if (a.lat == null || a.lon == null) return 1;
+        if (b.lat == null || b.lon == null) return -1;
+
+        const distA = calcDistance(
+          userCoords.lat,
+          userCoords.lon,
+          a.lat,
+          a.lon,
+        );
+
+        const distB = calcDistance(
+          userCoords.lat,
+          userCoords.lon,
+          b.lat,
+          b.lon,
+        );
+
+        return distA - distB;
+      });
     }
 
     return list;
@@ -263,7 +282,9 @@ export default function Salons() {
         )}
 
         {error && <div style={{ padding: 8, color: "crimson" }}>{error}</div>}
-
+        {todayOnly && loadingToday && (
+          <div style={{ padding: 8, opacity: 0.7 }}>Ищем свободные...</div>
+        )}
         {!loading && !error && filtered.length === 0 && (
           <div style={{ padding: 8, opacity: 0.75 }}>
             Результатов больше нет
