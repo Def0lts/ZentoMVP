@@ -219,6 +219,31 @@ export default function Salons() {
     return list;
   }, [salons, cat, q, sort, todayOnly, availableTodayIds]);
 
+  const nearby = useMemo(() => {
+    if (!userCoords) return [];
+
+    return [...salons]
+      .filter((s) => s.lat != null && s.lon != null)
+      .sort((a, b) => {
+        const distA = calcDistance(
+          userCoords.lat,
+          userCoords.lon,
+          a.lat!,
+          a.lon!,
+        );
+
+        const distB = calcDistance(
+          userCoords.lat,
+          userCoords.lon,
+          b.lat!,
+          b.lon!,
+        );
+
+        return distA - distB;
+      })
+      .slice(0, 3);
+  }, [salons, userCoords]);
+
   return (
     <div className="zento-screen">
       <div className="zento-phone">
@@ -289,6 +314,31 @@ export default function Salons() {
           <div style={{ padding: 8, opacity: 0.75 }}>
             Результатов больше нет
           </div>
+        )}
+
+        {nearby.length > 0 && (
+          <>
+            <div className="section-title">Рядом с тобой</div>
+
+            <div style={{ display: "grid", gap: 12 }}>
+              {nearby.map((s) => (
+                <div key={s.id} className="salon-card">
+                  <div className="salon-name">{s.name}</div>
+
+                  <div style={{ fontSize: 12, opacity: 0.7 }}>
+                    📍{" "}
+                    {calcDistance(
+                      userCoords!.lat,
+                      userCoords!.lon,
+                      s.lat!,
+                      s.lon!,
+                    ).toFixed(1)}{" "}
+                    км
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         <div style={{ display: "grid", gap: 12 }}>
