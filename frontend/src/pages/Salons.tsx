@@ -320,12 +320,55 @@ export default function Salons() {
           <>
             <div className="section-title">Рядом с тобой</div>
 
-            <div style={{ display: "grid", gap: 12 }}>
+            <div
+              style={{
+                display: "flex",
+                gap: 12,
+                overflowX: "auto",
+                paddingBottom: 6,
+              }}
+            >
               {nearby.map((s) => (
-                <div key={s.id} className="salon-card">
-                  <div className="salon-name">{s.name}</div>
+                <div
+                  key={s.id}
+                  onClick={() => nav(`/salons/${s.id}/masters`)}
+                  style={{
+                    minWidth: 140,
+                    background: "#fff",
+                    borderRadius: 16,
+                    padding: 10,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                    cursor: "pointer",
+                  }}
+                >
+                  {/* фото */}
+                  <div
+                    style={{
+                      width: "100%",
+                      height: 80,
+                      borderRadius: 12,
+                      overflow: "hidden",
+                      marginBottom: 6,
+                      background: "#eee",
+                    }}
+                  >
+                    {s.photo_url && (
+                      <img
+                        src={s.photo_url}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    )}
+                  </div>
 
-                  <div style={{ fontSize: 12, opacity: 0.7 }}>
+                  {/* название */}
+                  <div style={{ fontWeight: 600, fontSize: 13 }}>{s.name}</div>
+
+                  {/* расстояние */}
+                  <div style={{ fontSize: 12, opacity: 0.6 }}>
                     📍{" "}
                     {calcDistance(
                       userCoords!.lat,
