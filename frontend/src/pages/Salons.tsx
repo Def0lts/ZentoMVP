@@ -29,6 +29,8 @@ export default function Salons() {
   const searchQuery = qp.get("q") || "";
   const cat = (qp.get("cat") || "all") as Cat;
 
+  const [loadingToday, setLoadingToday] = useState(false);
+
   const [q, setQ] = useState(searchQuery);
   const [salons, setSalons] = useState<Salon[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,17 +150,16 @@ export default function Salons() {
 
   async function loadAvailableToday() {
     try {
-      const today = new Date().toISOString().slice(0, 10);
+      setLoadingToday(true);
 
-      const res = await fetch(
-        `${API_BASE}/salons/available-today?day=${today}`,
-      );
-
+      const res = await fetch(`${API_BASE}/salons/available-today`);
       const data = await res.json();
 
       setAvailableTodayIds(data.salon_ids || []);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      setAvailableTodayIds([]);
+    } finally {
+      setLoadingToday(false);
     }
   }
 
@@ -175,7 +176,17 @@ export default function Salons() {
       });
     }
     if (todayOnly) {
-      list = list.filter((s) => availableTodayIds.includes(s.id));
+      {
+        todayOnly && loadingToday && <div>Ищем свободные...</div>;
+      }
+
+      // пока грузится — ничего не фильтруем
+      if (loadingToday) return list;
+
+      // если загрузилось и есть данные — фильтруем
+      if (availableTodayIds.length > 0) {
+        list = list.filter((s) => availableTodayIds.includes(s.id));
+      }
     }
 
     if (sort === "price_asc") {
@@ -329,7 +340,6 @@ export default function Salons() {
 
                     <span>от {s.price_from} ₸</span>
                   </div>
-
                   <div className="salon-actions">
                     <button
                       className="btn-primary"
