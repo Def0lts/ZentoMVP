@@ -328,17 +328,18 @@ export default function Salons() {
                 paddingBottom: 6,
               }}
             >
-              {nearby.map((s) => (
+              {nearby.map((s, i) => (
                 <div
                   key={s.id}
                   onClick={() => nav(`/salons/${s.id}/masters`)}
                   style={{
                     minWidth: 140,
-                    background: "#fff",
+                    background: i === 0 ? "#eef4ff" : "#fff",
                     borderRadius: 16,
                     padding: 10,
                     boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
                     cursor: "pointer",
+                    border: i === 0 ? "1px solid #4f8cff" : "none",
                   }}
                 >
                   {/* фото */}
@@ -365,9 +366,28 @@ export default function Salons() {
                   </div>
 
                   {/* название */}
+
+                  {i === 0 && (
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: "#4f8cff",
+                        fontWeight: 600,
+                        marginBottom: 4,
+                      }}
+                    >
+                      БЛИЖАЙШИЙ
+                    </div>
+                  )}
+
                   <div style={{ fontWeight: 600, fontSize: 13 }}>{s.name}</div>
 
                   {/* расстояние */}
+
+                  <div style={{ fontSize: 12, fontWeight: 600 }}>
+                    от {s.price_from} ₸
+                  </div>
+
                   <div style={{ fontSize: 12, opacity: 0.6 }}>
                     📍{" "}
                     {calcDistance(
