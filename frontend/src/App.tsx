@@ -43,11 +43,6 @@ export default function App() {
     }
   }, []);
 
-  <Routes>
-    <Route path="/" element={<Home />} />
-    <Route path="/salons/:id" element={<SalonDetails />} />
-  </Routes>;
-
   return (
     <Routes>
       <Route path="/" element={<Home />} />
@@ -72,11 +67,6 @@ export default function App() {
       <Route path="/master/activate" element={<MasterActivate />} />
       <Route path="/master/requests" element={<MasterRequests />} />
       <Route path="/master/schedule" element={<MasterSchedule />} />
-
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/salons/:id" element={<SalonDetails />} />
-      </Routes>
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
