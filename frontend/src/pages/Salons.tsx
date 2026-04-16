@@ -318,7 +318,11 @@ export default function Salons() {
 
         {nearby.length > 0 && (
           <>
-            <div className="section-title">Рядом с тобой</div>
+            <div className="section-title">Ближайшие салоны</div>
+
+            <div style={{ fontSize: 12, opacity: 0.6, marginBottom: 8 }}>
+              На основе вашего местоположения
+            </div>
 
             <div
               style={{
@@ -367,19 +371,6 @@ export default function Salons() {
 
                   {/* название */}
 
-                  {i === 0 && (
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: "#4f8cff",
-                        fontWeight: 600,
-                        marginBottom: 4,
-                      }}
-                    >
-                      БЛИЖАЙШИЙ
-                    </div>
-                  )}
-
                   <div style={{ fontWeight: 600, fontSize: 13 }}>{s.name}</div>
 
                   {/* расстояние */}
@@ -415,6 +406,7 @@ export default function Salons() {
                 style={{
                   border: isNearest ? "2px solid #4f8cff" : "",
                   background: isNearest ? "#eef4ff" : "",
+                  transform: "scale(0.96)",
                 }}
               >
                 <div
