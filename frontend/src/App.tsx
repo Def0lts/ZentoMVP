@@ -11,6 +11,9 @@ import Profile from "./pages/Profile";
 import Support from "./pages/Support";
 import About from "./pages/About";
 
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 import ChooseMaster from "./pages/ChooseMaster";
 
 import MasterProfile from "./pages/master/MasterProfile";
@@ -22,6 +25,29 @@ import Favorites from "./pages/Favorites";
 import ChooseService from "./pages/ChooseService";
 
 export default function App() {
+  const nav = useNavigate();
+
+  useEffect(() => {
+    const tg = (window as any).Telegram?.WebApp;
+
+    if (!tg) return;
+
+    const startParam = tg.initDataUnsafe?.start_param;
+
+    console.log("START PARAM:", startParam);
+
+    if (startParam && startParam.startsWith("salon_")) {
+      const salonId = startParam.replace("salon_", "");
+
+      nav(`/salons/${salonId}`);
+    }
+  }, []);
+
+  <Routes>
+    <Route path="/" element={<Home />} />
+    <Route path="/salons/:id" element={<SalonDetails />} />
+  </Routes>;
+
   return (
     <Routes>
       <Route path="/" element={<Home />} />
@@ -46,6 +72,11 @@ export default function App() {
       <Route path="/master/activate" element={<MasterActivate />} />
       <Route path="/master/requests" element={<MasterRequests />} />
       <Route path="/master/schedule" element={<MasterSchedule />} />
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/salons/:id" element={<SalonDetails />} />
+      </Routes>
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
