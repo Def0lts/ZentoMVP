@@ -3,6 +3,9 @@ import BottomNav from "../components/BottomNav";
 
 export default function Support() {
   const nav = useNavigate();
+  const handleSupport = () => {
+    window.open("https://t.me/Def0lt_s", "_blank");
+  };
 
   return (
     <div className="zento-screen">
@@ -25,10 +28,7 @@ export default function Support() {
             Напиши нам — ответим в течение рабочего дня.
           </div>
 
-          <button
-            className="big-primary"
-            onClick={() => alert("Позже подключим Telegram/WhatsApp чат")}
-          >
+          <button className="btn-primary" onClick={handleSupport}>
             💬 Написать в поддержку
           </button>
 
