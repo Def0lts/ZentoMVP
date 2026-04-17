@@ -10,6 +10,8 @@ import {
 
 import { API_BASE } from "../lib/api";
 
+import { MapPin, Star, Heart } from "lucide-react";
+
 import {
   getTelegramId,
   getTelegramInitData,
@@ -380,7 +382,7 @@ export default function Salons() {
                   </div>
 
                   <div style={{ fontSize: 12, opacity: 0.6 }}>
-                    📍{" "}
+                    <MapPin size={14} />{" "}
                     {calcDistance(
                       userCoords!.lat,
                       userCoords!.lon,
@@ -465,14 +467,20 @@ export default function Salons() {
                       style={{ padding: "6px 10px" }}
                       onClick={() => toggleFavorite(s.id)}
                     >
-                      {favoriteIds.includes(s.id) ? "❤️" : "♡"}
+                      {favoriteIds.includes(s.id) ? (
+                        <Heart size={16} fill="red" />
+                      ) : (
+                        "♡"
+                      )}
                     </button>
                   </div>
 
                   <div className="salon-meta">
-                    <span>⭐ {s.rating}</span>
                     <span>
-                      📍{" "}
+                      <Star size={16} /> {s.rating}
+                    </span>
+                    <span>
+                      <MapPin size={14} />{" "}
                       {userCoords && s.lat != null && s.lon != null
                         ? calcDistance(
                             userCoords.lat,

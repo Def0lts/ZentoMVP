@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import nailIcon from "../assets/icons/Home_nail.png";
+import hairIcon from "../assets/icons/Home_hair.png";
+import massageIcon from "../assets/icons/Home_massage.png";
+import browsIcon from "../assets/icons/Home_brows.png";
+
 import {
   addFavorite,
   getFavorites,
@@ -17,13 +22,11 @@ import {
 
 import BottomNav from "../components/BottomNav";
 
-type Cat = "nails" | "hair" | "massage" | "brows";
-
-const categories: { key: Cat; title: string; icon: string }[] = [
-  { key: "nails", title: "Маникюр", icon: "💅" },
-  { key: "hair", title: "Парикмахер", icon: "💇‍♀️" },
-  { key: "massage", title: "Массаж", icon: "💆" },
-  { key: "brows", title: "Брови и ресницы", icon: "👁️" },
+const categories = [
+  { key: "nails", title: "Маникюр", icon: nailIcon },
+  { key: "hair", title: "Парикмахер", icon: hairIcon },
+  { key: "massage", title: "Массаж", icon: massageIcon },
+  { key: "brows", title: "Брови и ресницы", icon: browsIcon },
 ];
 
 export default function Home() {
@@ -189,12 +192,22 @@ export default function Home() {
               }
             >
               <div className="cat-left">
-                <div className="icon-circle">{c.icon}</div>
+                <div className="icon-circle">
+                  <img
+                    src={c.icon}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      objectFit: "contain",
+                    }}
+                  />
+                </div>
+
                 <div>
                   <div className="cat-title">{c.title}</div>
                   <div className="cat-sub">
-                    {categoryCounts[c.key] > 0
-                      ? `${categoryCounts[c.key]} салонов`
+                    {categoryCounts[c.key as keyof typeof categoryCounts] > 0
+                      ? `${categoryCounts[c.key as keyof typeof categoryCounts]} салонов`
                       : "Нет салонов"}
                   </div>
                 </div>

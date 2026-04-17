@@ -74,6 +74,43 @@
   padding: 0 12px;
   box-sizing: border-box;
 }
+/*  MapPin, Star, Heart  */
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  transition: all 0.2s ease;
+}
+
+.salon-card {
+  border-radius: 20px;
+  transition: all 0.25s ease;
+}
+
+.salon-card:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:active {
+  transform: scale(0.96);
+}
+
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.salon-card:hover {
+  transform: translateY(-2px);
+}
+
 
 /* category card */
 .cat-card {
