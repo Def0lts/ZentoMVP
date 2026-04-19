@@ -150,7 +150,7 @@ export default function Home() {
             <img
               src={logo}
               style={{
-                height: 28,
+                height: 100,
                 objectFit: "contain",
               }}
             />
