@@ -133,52 +133,33 @@ export default function Home() {
         {/* Top bar */}
 
         <div className="topbar">
-          {/* ГОРОД */}
-          <div className="pill" style={{ fontWeight: 600 }}>
-            Костанай
+          {/* ЛЕВО */}
+          <div className="topbar-left">
+            <div className="pill">Костанай</div>
           </div>
 
-          {/* ЛОГО */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              fontWeight: 800,
-            }}
-          >
+          {/* ЦЕНТР (ЛОГО) */}
+          <div className="topbar-center">
             <img
               src={logo}
               style={{
-                height: 100,
+                height: 36,
                 objectFit: "contain",
               }}
             />
           </div>
 
-          {/* ПРОФИЛЬ */}
-          <div
-            className="pill"
-            onClick={() => nav(getProfileRoute())}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              cursor: "pointer",
-            }}
-          >
+          {/* ПРАВО */}
+          <div className="topbar-right" onClick={() => nav(getProfileRoute())}>
             <img
               src={user?.photo_url || "/default-avatar.png"}
               style={{
-                width: 26,
-                height: 26,
+                width: 30,
+                height: 30,
                 borderRadius: "50%",
                 objectFit: "cover",
               }}
             />
-            <span style={{ fontSize: 13 }}>
-              {user?.first_name || "Профиль"}
-            </span>
           </div>
         </div>
 

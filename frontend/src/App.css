@@ -45,6 +45,28 @@
   box-shadow: 0 4px 10px rgba(0,0,0,0.06);
 }
 
+
+
+.topbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topbar-left,
+.topbar-right {
+  z-index: 2;
+}
+
+/* ВОТ ЭТО КЛЮЧ */
+.topbar-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+
 .search {
   display: flex;
   align-items: center;
