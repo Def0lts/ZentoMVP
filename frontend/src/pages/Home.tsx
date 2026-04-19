@@ -143,23 +143,44 @@ export default function Home() {
             <img
               src={logo}
               style={{
-                height: 36,
+                height: 48,
                 objectFit: "contain",
+                transform: "translateY(2px)",
               }}
             />
           </div>
 
           {/* ПРАВО */}
-          <div className="topbar-right" onClick={() => nav(getProfileRoute())}>
+
+          <div
+            className="topbar-right"
+            onClick={() => nav(getProfileRoute())}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              cursor: "pointer",
+            }}
+          >
             <img
               src={user?.photo_url || "/default-avatar.png"}
               style={{
-                width: 30,
-                height: 30,
+                width: 36,
+                height: 36,
                 borderRadius: "50%",
                 objectFit: "cover",
               }}
             />
+
+            <span
+              style={{
+                fontSize: 11,
+                opacity: 0.7,
+                marginTop: 2,
+              }}
+            >
+              Профиль
+            </span>
           </div>
         </div>
 
