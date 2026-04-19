@@ -6,6 +6,8 @@ import hairIcon from "../assets/icons/Home_hair.png";
 import massageIcon from "../assets/icons/Home_massage.png";
 import browsIcon from "../assets/icons/Home_brows.png";
 
+import logo from "../assets/icons/Zento_logo-removebg.png";
+
 import {
   addFavorite,
   getFavorites,
@@ -46,6 +48,9 @@ export default function Home() {
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const telegramId = getTelegramId(1111);
   const initData = getTelegramInitData();
+
+  const tg = (window as any).Telegram?.WebApp;
+  const user = tg?.initDataUnsafe?.user;
 
   async function load() {
     try {
@@ -126,35 +131,55 @@ export default function Home() {
     <div className="zento-screen">
       <div className="zento-phone">
         {/* Top bar */}
+
         <div className="topbar">
-          <div
-            className="pill"
-            style={{ display: "flex", gap: 8, alignItems: "center" }}
-          >
-            <span>📍</span>
-            <span style={{ fontWeight: 800, fontSize: 12 }}>Костанай</span>
+          {/* ГОРОД */}
+          <div className="pill" style={{ fontWeight: 600 }}>
+            Костанай
           </div>
 
+          {/* ЛОГО */}
           <div
             style={{
-              fontWeight: 900,
               display: "flex",
               alignItems: "center",
-              gap: 8,
+              gap: 6,
+              fontWeight: 800,
             }}
           >
-            <span className="pill" style={{ padding: "8px 10px" }}>
-              🗓️
-            </span>
-            <span>Zento</span>
+            <img
+              src={logo}
+              style={{
+                height: 28,
+                objectFit: "contain",
+              }}
+            />
           </div>
-          <button
+
+          {/* ПРОФИЛЬ */}
+          <div
             className="pill"
             onClick={() => nav(getProfileRoute())}
-            style={{ cursor: "pointer" }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              cursor: "pointer",
+            }}
           >
-            👤 Профиль
-          </button>
+            <img
+              src={user?.photo_url || "/default-avatar.png"}
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: "50%",
+                objectFit: "cover",
+              }}
+            />
+            <span style={{ fontSize: 13 }}>
+              {user?.first_name || "Профиль"}
+            </span>
+          </div>
         </div>
 
         {/* Search */}
