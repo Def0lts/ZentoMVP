@@ -404,7 +404,7 @@ export default function Salons() {
             return (
               <div
                 key={s.id}
-                className="salon-card"
+                className="salon-card fade-in"
                 style={{
                   border: isNearest ? "2px solid #4f8cff" : "",
                   background: isNearest ? "#eef4ff" : "",

@@ -261,7 +261,7 @@ export default function Home() {
 
         <div style={{ display: "grid", gap: 12 }}>
           {recommended.map((s) => (
-            <div key={s.id} className="salon-card">
+            <div key={s.id} className="salon-card fade-in">
               <div
                 className="salon-img"
                 style={{
