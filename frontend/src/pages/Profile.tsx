@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import { getTelegramUser } from "../lib/telegram";
 
+import { Calendar, Heart, MessageCircle, Info } from "lucide-react";
+
 export default function Profile() {
   const nav = useNavigate();
 
@@ -11,7 +13,7 @@ export default function Profile() {
   }, []);
 
   const tgUser = getTelegramUser();
-
+  const photo = (tgUser as any)?.photo_url;
   const firstName = tgUser?.first_name ?? "";
   const lastName = tgUser?.last_name ?? "";
   const fullName = `${firstName}${lastName ? " " + lastName : ""}`.trim();
@@ -29,11 +31,24 @@ export default function Profile() {
         </div>
 
         <div className="profile-card">
-          <div className="avatar" />
-
-          <div className="profile-name">{name}</div>
-          <div className="profile-phone">{username}</div>
-
+          \
+          <img
+            src={photo || "/default-avatar.png"}
+            alt="avatar"
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: "50%",
+              objectFit: "cover",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+            }}
+          />
+          <div className="profile-name" style={{ fontWeight: 700 }}>
+            {name}
+          </div>
+          <div className="profile-phone" style={{ opacity: 0.6 }}>
+            {username}
+          </div>
           <div className="menu">
             <div
               className="menu-item"
@@ -42,7 +57,10 @@ export default function Profile() {
               onClick={() => nav("/my-bookings")}
             >
               <div className="menu-left">
-                <div className="menu-ico">📅</div>
+                <div className="menu-ico">
+                  <Calendar size={18} />
+                </div>
+
                 <div>
                   <div className="menu-title">Мои записи</div>
                 </div>
@@ -57,7 +75,10 @@ export default function Profile() {
               onClick={() => nav("/favorites")}
             >
               <div className="menu-left">
-                <div className="menu-ico">❤️</div>
+                <div className="menu-ico">
+                  <Heart size={18} />
+                </div>
+
                 <div>
                   <div className="menu-title">Избранные</div>
                 </div>
@@ -72,7 +93,10 @@ export default function Profile() {
               onClick={() => nav("/support")}
             >
               <div className="menu-left">
-                <div className="menu-ico">💬</div>
+                <div className="menu-ico">
+                  <MessageCircle size={18} />
+                </div>
+
                 <div>
                   <div className="menu-title">Поддержка</div>
                 </div>
@@ -87,7 +111,10 @@ export default function Profile() {
               onClick={() => nav("/about")}
             >
               <div className="menu-left">
-                <div className="menu-ico">ℹ️</div>
+                <div className="menu-ico">
+                  <Info size={18} />
+                </div>
+
                 <div>
                   <div className="menu-title">О сервисе</div>
                 </div>
@@ -95,7 +122,6 @@ export default function Profile() {
               <div style={{ opacity: 0.7, fontWeight: 900 }}>›</div>
             </div>
           </div>
-
           <div className="role-switch">
             <div style={{ fontWeight: 900 }}>Режим:</div>
             <div className="role-pill">
