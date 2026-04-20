@@ -143,9 +143,9 @@ export default function Home() {
             <img
               src={logo}
               style={{
-                height: 48,
+                height: 64,
                 objectFit: "contain",
-                transform: "translateY(2px)",
+                transform: "translateY(4px)",
               }}
             />
           </div>
@@ -165,18 +165,20 @@ export default function Home() {
             <img
               src={user?.photo_url || "/default-avatar.png"}
               style={{
-                width: 36,
-                height: 36,
+                width: 42,
+                height: 42,
                 borderRadius: "50%",
                 objectFit: "cover",
+                boxShadow: "0 6px 16px rgba(0,0,0,0.15)",
               }}
             />
 
             <span
               style={{
-                fontSize: 11,
-                opacity: 0.7,
-                marginTop: 2,
+                fontSize: 12,
+                opacity: 0.6,
+                marginTop: 3,
+                fontWeight: 500,
               }}
             >
               Профиль
