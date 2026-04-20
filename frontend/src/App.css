@@ -707,6 +707,25 @@ button:active {
   box-shadow: var(--shadow-sm);
 }
 
+
+
+.profile-item {
+  background: #ffffff;
+  padding: 14px;
+  border-radius: 14px;
+  font-weight: 500;
+
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.profile-item:active {
+  transform: scale(0.98);
+}
+
+
 .avatar {
   width: 64px;
   height: 64px;
