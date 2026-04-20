@@ -1,5 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { Home, User } from "lucide-react";
+
 type Props = {
   homePath?: string;
   profilePath?: string;
@@ -34,21 +36,21 @@ export default function BottomNav({ homePath = "/", profilePath }: Props) {
   return (
     <div className="bottom-nav-wrap">
       <div className="bottom-nav">
-        <button
-          className={`bottom-btn ${onHome ? "active" : ""}`}
-          onClick={() => nav(homePath)}
-          aria-label="Home"
+        <div
+          className={`nav-item ${onHome ? "active" : ""}`}
+          onClick={() => nav("/")}
         >
-          🏠
-        </button>
+          <Home size={22} />
+          <span>Главная</span>
+        </div>
 
-        <button
-          className={`bottom-btn secondary ${onProfile ? "active" : ""}`}
-          onClick={() => nav(resolvedProfilePath)}
-          aria-label="Profile"
+        <div
+          className={`nav-item ${onProfile ? "active" : ""}`}
+          onClick={() => nav("/profile")}
         >
-          👤
-        </button>
+          <User size={22} />
+          <span>Профиль</span>
+        </div>
       </div>
     </div>
   );
