@@ -38,7 +38,7 @@ export default function BottomNav({ homePath = "/", profilePath }: Props) {
       <div className="bottom-nav">
         <div
           className={`nav-item ${onHome ? "active" : ""}`}
-          onClick={() => nav(resolvedProfilePath)}
+          onClick={() => nav(homePath)}
         >
           <Home size={22} />
           <span>Главная</span>
