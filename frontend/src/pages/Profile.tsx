@@ -30,32 +30,34 @@ export default function Profile() {
           <div style={{ width: 44 }} />
         </div>
 
-        <div
-          className="profile-card"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          <img
-            src={photo || "/default-avatar.png"}
-            alt="avatar"
+        <div className="profile-card">
+          <div
             style={{
-              width: 80,
-              height: 80,
-              borderRadius: "50%",
-              objectFit: "cover",
-
-              boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: 10,
             }}
-          />
-          <div className="profile-name" style={{ fontWeight: 700 }}>
-            {name}
-          </div>
-          <div className="profile-phone" style={{ opacity: 0.6 }}>
-            {username}
+          >
+            <img
+              src={photo || "/default-avatar.png"}
+              alt="avatar"
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: "50%",
+                objectFit: "cover",
+
+                boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+              }}
+            />
+            <div className="profile-name" style={{ fontWeight: 700 }}>
+              {name}
+            </div>
+            <div className="profile-phone" style={{ opacity: 0.6 }}>
+              {username}
+            </div>
           </div>
           <div className="menu">
             <div
