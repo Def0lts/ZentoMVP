@@ -8,6 +8,8 @@ import browsIcon from "../assets/icons/Home_brows.png";
 
 import logo from "../assets/icons/Zento_logo-removebg.png";
 
+import { MapPin, Star, Heart } from "lucide-react";
+
 import {
   addFavorite,
   getFavorites,
@@ -265,14 +267,11 @@ export default function Home() {
               <div
                 className="salon-img"
                 style={{
-                  width: 78,
-                  height: 78,
-                  borderRadius: 18,
+                  width: 82,
+                  height: 82,
+                  borderRadius: 20,
                   overflow: "hidden",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: "#eee",
+                  background: "#f3f4f6",
                   flexShrink: 0,
                 }}
               >
@@ -303,20 +302,63 @@ export default function Home() {
                   <button
                     title="В избранное"
                     className="btn-ghost"
-                    style={{ padding: "6px 10px" }}
+                    style={{
+                      padding: "6px",
+                      borderRadius: "50%",
+                      background: "#f3f4f6",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
                     onClick={() => toggleFavorite(s.id)}
                   >
-                    {favoriteIds.includes(s.id) ? "❤️" : "♡"}
+                    {favoriteIds.includes(s.id) ? (
+                      <Heart
+                        size={16}
+                        fill={favoriteIds.includes(s.id) ? "#ff4d6d" : "none"}
+                        strokeWidth={2}
+                      />
+                    ) : (
+                      "♡"
+                    )}
                   </button>
                 </div>
 
-                <div className="salon-meta">
-                  <span>⭐ {s.rating}</span>
-                  <span>📍 {s.km} км</span>
-                  <span>от {s.price_from} ₸</span>
+                <div
+                  className="salon-meta"
+                  style={{
+                    display: "flex",
+                    gap: 10,
+                    marginTop: 4,
+                    fontSize: 13,
+                    opacity: 0.8,
+                  }}
+                >
+                  <span
+                    style={{ display: "flex", alignItems: "center", gap: 4 }}
+                  >
+                    <Star size={14} strokeWidth={2} color="#f5b301" />
+                    {s.rating}
+                  </span>
+
+                  <span
+                    style={{ display: "flex", alignItems: "center", gap: 4 }}
+                  >
+                    <MapPin size={14} strokeWidth={2} color="#6b7280" />
+                    {s.km} км
+                  </span>
+
+                  <span style={{ fontWeight: 600 }}>от {s.price_from} ₸</span>
                 </div>
 
-                <div className="salon-actions">
+                <div
+                  className="salon-actions"
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    marginTop: 8,
+                  }}
+                >
                   <button
                     className="btn-primary"
                     onClick={() => nav(`/booking/${s.id}`)}
