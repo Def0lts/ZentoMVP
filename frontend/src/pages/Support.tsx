@@ -4,7 +4,7 @@ import BottomNav from "../components/BottomNav";
 export default function Support() {
   const nav = useNavigate();
   const handleSupport = () => {
-    window.open("https://t.me/Def0lt_s", "_blank");
+    window.open("https://t.me/Zento_Support_bot", "_blank");
   };
 
   return (
